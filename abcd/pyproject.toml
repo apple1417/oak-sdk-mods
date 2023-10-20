@@ -1,0 +1,8 @@
+[project]
+name = "abcd"
+version = "1"
+authors = [{ name = "apple1417" }]
+description = "Adds keybinds to do various cheaty things."
+
+[tool.sdkmod]
+name = "Apple's Borderlands Cheats Dos"

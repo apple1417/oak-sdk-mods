@@ -1,0 +1,8 @@
+[project]
+name = "dialog_skipper"
+version = "1"
+authors = [{ name = "apple1417" }]
+description = "Adds a keybind to skip dialog."
+
+[tool.sdkmod]
+name = "Dialog Skipper"

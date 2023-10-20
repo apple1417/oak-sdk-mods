@@ -1,0 +1,5 @@
+[project]
+name = "obj_dump"
+version = "1"
+authors = [{ name = "apple1417" }]
+description = "Adds the 'obj_dump' command to dump object properties."
