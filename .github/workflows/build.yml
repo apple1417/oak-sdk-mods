@@ -1,0 +1,124 @@
+name: CI
+
+on: [
+  push,
+  pull_request,
+  workflow_dispatch
+]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+# ==============================================================================
+
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' &&  github.repository == 'apple1417/oak-sdk-mods'
+
+    needs:
+      - spelling
+      - black
+      - pyright
+      - ruff
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Prepease releases
+      run: ./prepare_releases.py
+
+    - name: Upload releases
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "*.sdkmod,*.zip"
+        allowUpdates: true
+        omitBodyDuringUpdate: true
+        omitNameDuringUpdate: true
+        tag: dev_ci
+
+# ==============================================================================
+
+  spelling:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Check spelling
+      uses: crate-ci/typos@master
+
+  black:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Check formatting
+      uses: psf/black@stable
+      with:
+        options: --check --verbose
+
+  pyright:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        path: oak-sdk-mods
+
+
+    - name: Checkout pyunrealsdk
+      uses: actions/checkout@v4
+      with:
+        repository: bl-sdk/pyunrealsdk
+        path: pyunrealsdk
+
+    - name: Checkout oak-mod-manager
+      uses: actions/checkout@v4
+      with:
+        repository: apple1417/oak-mod-manager
+        path: oak-mod-manager
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install tomlq
+      run: pip install yq
+
+    - name: Add stub paths to pyproject.toml
+      run: >
+        tomlq -it '.tool.pyright.extraPaths =
+        ["../pyunrealsdk/stubs",
+        "../oak-mod-manager/src"]'
+        oak-sdk-mods/pyproject.toml
+
+    - name: Run pyright
+      uses: jakebailey/pyright-action@v1
+      with:
+        working-directory: oak-sdk-mods
+
+  ruff:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Run Ruff
+      uses: chartboost/ruff-action@v1
