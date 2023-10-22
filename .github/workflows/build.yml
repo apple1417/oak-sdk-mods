@@ -14,7 +14,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' &&  github.repository == 'apple1417/oak-sdk-mods'
+    if: github.ref == 'refs/heads/master' && github.repository == 'apple1417/oak-sdk-mods'
 
     needs:
       - spelling
@@ -38,13 +38,18 @@ jobs:
       run: ./prepare_releases.py
 
     - name: Upload releases
-      uses: ncipollo/release-action@v1
+      uses: andelf/nightly-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        artifacts: "*.sdkmod,*.zip"
-        allowUpdates: true
-        omitBodyDuringUpdate: true
-        omitNameDuringUpdate: true
-        tag: dev_ci
+        tag_name: nightly
+        files: |
+          *.sdkmod
+          *.zip
+        prerelease: false
+        name: Automated Releases
+        body: >
+          This release is automatically built from the latest (passing) commits on master.
 
 # ==============================================================================
 
