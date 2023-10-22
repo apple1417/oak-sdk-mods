@@ -89,7 +89,7 @@ jobs:
     - name: Checkout oak-mod-manager
       uses: actions/checkout@v4
       with:
-        repository: apple1417/oak-mod-manager
+        repository: bl-sdk/oak-mod-manager
         path: oak-mod-manager
 
     - name: Setup Python
