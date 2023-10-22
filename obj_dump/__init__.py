@@ -5,7 +5,7 @@ from argparse import Namespace
 from typing import Any
 
 import unrealsdk
-from mods_base import Library, build_mod, command
+from mods_base import build_mod, command
 from unrealsdk.unreal import WrappedArray
 
 __version__: str
@@ -38,4 +38,4 @@ def obj_dump(args: Namespace) -> None:  # noqa: D103
 
 obj_dump.add_argument("obj", help="The object to dump. Should not include class.")
 
-build_mod(cls=Library)
+build_mod()
