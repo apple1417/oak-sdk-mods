@@ -6,3 +6,5 @@ description = "Adds keybinds to do various cheaty things."
 
 [tool.sdkmod]
 name = "Apple's Borderlands Cheats Dos"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/abcd.sdkmod"

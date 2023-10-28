@@ -3,3 +3,7 @@ name = "obj_dump"
 version = "1"
 authors = [{ name = "apple1417" }]
 description = "Adds the 'obj_dump' command to dump object properties."
+
+[tool.sdkmod]
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/obj_dump.sdkmod"
