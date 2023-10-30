@@ -1,0 +1,9 @@
+[project]
+name = "Spawn_reset"
+version = "1"
+authors = [{ name = "Itzsmugg" }]
+description = """Adds a keybind to reset all spawns.
+DISCLAIMER: using this mod during a playthrough could result in a sequence break in the mission progress, which could lead to a progress block"""
+
+[tool.sdkmod]
+name = "Spawn Reset"
