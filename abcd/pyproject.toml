@@ -1,8 +1,11 @@
 [project]
 name = "abcd"
-version = "1"
+version = "2"
 authors = [{ name = "apple1417" }]
 description = "Adds keybinds to do various cheaty things."
+
+[project.urls]
+Changelog = "https://github.com/apple1417/oak-sdk-mods/blob/master/abcd/changelog.md"
 
 [tool.sdkmod]
 name = "Apple's Borderlands Cheats Dos"

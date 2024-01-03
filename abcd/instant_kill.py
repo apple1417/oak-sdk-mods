@@ -3,7 +3,7 @@
 from typing import Any
 
 import unrealsdk
-from mods_base import get_pc, hook, keybind
+from mods_base import BoolOption, get_pc, hook, keybind
 from ui_utils import show_hud_message
 from unrealsdk.hooks import Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
@@ -37,6 +37,16 @@ def one_shot() -> None:
         receive_any_damage.disable()
 
 
+one_shot_one_percent_option = BoolOption(
+    "One Shot to 1% HP",
+    False,
+    description=(
+        "Limit One Shot Mode to setting enemies' health to 1%. Usually, this prevents skipping"
+        " phase changes, but some enemies need to phase in order to properly kill them."
+    ),
+)
+
+
 @hook("/Script/GbxGameSystemCore.DamageComponent:ReceiveAnyDamage", Type.PRE)
 def receive_any_damage(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
     pc = get_pc()
@@ -46,7 +56,13 @@ def receive_any_damage(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunc
         return
 
     obj.SetCurrentShield(0)
-    if obj.GetCurrentHealth() > 1:
-        obj.SetCurrentHealth(1)
-    else:
+
+    # Try set the enemy hp to 1%, so that your bullet kills them, which usually triggers all the
+    # proper death logic
+    # If this fails, and you hit someone at less than 1%, just set to 0 directly - unless the we
+    # have the option overriding it
+    one_percent = obj.GetMaxHealth() / 100
+    if obj.GetCurrentHealth() > one_percent:
+        obj.SetCurrentHealth(one_percent)
+    elif not one_shot_one_percent_option.value:
         obj.SetCurrentHealth(0)
