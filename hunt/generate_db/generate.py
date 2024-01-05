@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 import csv
 import sqlite3
-import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 HUNT_DB = Path(__file__).with_name("hunt.sqlite3")
 
@@ -244,13 +242,7 @@ def open_hunt_db() -> sqlite3.Connection:
     """
     HUNT_DB.unlink(missing_ok=True)
 
-    autocommit: dict[str, Any]
-    if sys.version_info >= (3, 12):
-        autocommit = {"autocommit": True}
-    else:
-        autocommit = {"isolation_level": None}
-
-    con = sqlite3.connect(f"file:{HUNT_DB}", uri=True, **autocommit)
+    con = sqlite3.connect(f"file:{HUNT_DB}", uri=True)
     cur = con.cursor()
 
     cur.execute("PRAGMA foreign_keys = ON")
@@ -497,10 +489,10 @@ if __name__ == "__main__":
     # Use cascade on enemy class as we expect to change it later
     cur.execute(
         """
-        CREATE TABLE EnemyDrops (
+        CREATE TABLE Drops (
             ID          INTEGER NOT NULL UNIQUE,
             ItemBalance STRING NOT NULL,
-            EnemyClass  STRING NOT NULL,
+            EnemyClass  STRING,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ItemBalance) REFERENCES Items(Balance),
             UNIQUE(ItemBalance, EnemyClass)
@@ -513,7 +505,7 @@ if __name__ == "__main__":
     cur.execute(
         """
         INSERT INTO
-            EnemyDrops (ItemBalance, EnemyClass)
+            Drops (ItemBalance, EnemyClass)
         SELECT
             i.Balance,
             s.ObjectName || '_C'
@@ -534,7 +526,7 @@ if __name__ == "__main__":
     cur.execute(
         """
         UPDATE
-            EnemyDrops
+            Drops
         SET
             EnemyClass = '/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/'
                          || 'BP_CrazyEarlDoor.BP_CrazyEarlDoor_C'
@@ -548,12 +540,12 @@ if __name__ == "__main__":
         cur.execute(
             """
             INSERT INTO
-                EnemyDrops (ItemBalance, EnemyClass)
+                Drops (ItemBalance, EnemyClass)
             SELECT
                 ItemBalance,
                 ?
             FROM
-                EnemyDrops
+                Drops
             WHERE
                 EnemyClass = ?
             """,
@@ -563,7 +555,7 @@ if __name__ == "__main__":
     cur.execute(
         """
         DELETE FROM
-            EnemyDrops
+            Drops
         WHERE
             EnemyClass IN (
                 '/Alisma/Enemies/AliEnforcer/_Unique/TheBlackRook/'
@@ -576,19 +568,11 @@ if __name__ == "__main__":
 
     cur.execute(
         """
-        CREATE TABLE WorldDrops (
-            ID          INTEGER NOT NULL UNIQUE,
-            ItemBalance STRING NOT NULL UNIQUE,
-            PRIMARY KEY(ID AUTOINCREMENT)
-        )
-        """,
-    )
-    cur.execute(
-        """
         INSERT INTO
-            WorldDrops (ItemBalance)
+            Drops (ItemBalance, EnemyClass)
         SELECT
-            i.ObjectName
+            i.ObjectName,
+            NULL
         FROM
             uniques.Sources as s
         INNER JOIN
@@ -675,11 +659,8 @@ if __name__ == "__main__":
                 """
                 SELECT
                     i.ID
-                FROM (
-                    SELECT ItemBalance FROM EnemyDrops
-                    UNION
-                    SELECT ItemBalance FROM WorldDrops
-                ) as d
+                FROM
+                    Drops as d
                 INNER JOIN
                     Items as i on d.ItemBalance = i.Balance
                 INNER JOIN
@@ -689,7 +670,8 @@ if __name__ == "__main__":
                 INNER JOIN
                     uniques.Sources as s ON o.SourceID = s.ID
                 WHERE
-                    s.SourceType = 'Enemy'
+                    d.EnemyClass IS NOT NULL
+                    and s.SourceType = 'Enemy'
                     and s.Map = ?
                 """,
                 (map_name,),
@@ -706,11 +688,12 @@ if __name__ == "__main__":
                     SELECT
                         i.ID
                     FROM
-                        WorldDrops as d
+                        Drops as d
                     LEFT JOIN
                         Items as i ON d.ItemBalance = i.Balance
                     WHERE
-                        i.Balance like ?
+                        d.EnemyClass IS NULL
+                        and i.Balance like ?
                     """,
                     (bal_pattern,),
                 )

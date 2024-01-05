@@ -100,14 +100,15 @@ def drop_hook(
                 SELECT
                     1
                 FROM
-                    WorldDrops
+                    Drops
                 WHERE
                     ItemBalance = ?
+                    and EnemyClass IS NULL
             )
             """,
             (balance_name,),
         )
-        # If we found a row, it's a valid drop
+        # If we found a row, it's a valid world drop
         if cur.fetchone()[0]:
             valid_pickups.add(obj)
             return
@@ -127,7 +128,7 @@ def drop_hook(
                     SELECT
                         1
                     FROM
-                        EnemyDrops
+                        Drops
                     WHERE
                         ItemBalance = ?
                         and EnemyClass = ?
@@ -139,7 +140,7 @@ def drop_hook(
             if cur.fetchone()[0]:
                 valid_pickups.add(obj)
                 return
-        return
+        break
 
 
 @hook("/Script/GbxInventory.InventoryItemPickup:OnLookedAtByPlayer")
