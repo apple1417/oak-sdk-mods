@@ -1,10 +1,9 @@
 # ruff: noqa: D103
 
-import sqlite3
 from typing import Any
 
 import unrealsdk
-from mods_base import ENGINE, hook
+from mods_base import ENGINE, hook, html_to_plain_text
 from ui_utils import show_hud_message
 from unrealsdk import logging
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
@@ -166,33 +165,12 @@ def itemcard_hook(
 
     bal = obj.CachedInventoryBalanceComponent.InventoryBalanceData._path_name()
     with open_db("w") as cur:
-        try:
-            cur.execute(
-                """
-                INSERT INTO
-                    Collected (ItemID)
-                SELECT
-                    ID
-                FROM
-                    Items
-                WHERE
-                    Balance = ?
-                """,
-                (bal,),
-            )
-        except sqlite3.IntegrityError:
-            # Already collected
-            return
-
-    with open_db("r") as cur:
-        # Partly base the duration of the message on the point value, let the more valuable stuff
-        # hang around a bit longer
         cur.execute(
             """
+            INSERT INTO
+                Collected (ItemID)
             SELECT
-                Name,
-                '<font color="#00ff00">+' || Points || '</font> points',
-                MAX(4, MIN(8, Points))
+                ID
             FROM
                 Items
             WHERE
@@ -200,9 +178,35 @@ def itemcard_hook(
             """,
             (bal,),
         )
-        name, points_message, duration = cur.fetchone()
-        show_hud_message(name, points_message, duration)
-        logging.info(f"HUNT: Collected {name}")
+
+    with open_db("r") as cur:
+        # The first time you collect an item, partly base the duration of the message on the point
+        # value, let the more valuable stuff hang around a bit longer
+        cur.execute(
+            """
+            SELECT
+                IIF(NumCollected > 1,
+                    'Duplicate ' || Name,
+                    Name
+                ),
+                IIF(NumCollected > 1,
+                    'Collected ' || NumCollected ||' times',
+                    '<font color="#00ff00">+' || Points || '</font> points'
+                ),
+                IIF(NumCollected > 1,
+                    4,
+                    MAX(4, MIN(8, Points))
+                )
+            FROM
+                CollectedItems
+            WHERE
+                Balance = ?
+            """,
+            (bal,),
+        )
+        title, message, duration = cur.fetchone()
+        show_hud_message(title, message, duration)
+        logging.info(html_to_plain_text(f"[HUNT] {title}: {message}"))
 
 
 @hook("/Script/Engine.PlayerController:ServerNotifyLoadedWorld")

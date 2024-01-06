@@ -13,6 +13,7 @@ from mods_base import (
     NestedOption,
     SliderOption,
 )
+from unrealsdk import logging
 
 from .db import open_db, reset_db
 
@@ -28,44 +29,103 @@ def create_item_option(item_id: int) -> BaseOption:
     Returns:
         A new option.
     """
-    with open_db("r") as cur:
-        cur.execute(
-            """
-            SELECT
-                format(
-                    '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18"/>  %s',
-                    IIF(CollectTime IS NULL,
-                        'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked',
-                        'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked'),
-                    Name
-                ),
-                Name,
-                IIF(CollectTime IS NULL,
-                    Description,
-                    format(
-                        'Collected %s%c%c%s',
-                        datetime(CollectTime, 'localtime'),
-                        char(10),
-                        char(10),
-                        Description
-                    )
+    return ItemOption(f"Item ID {item_id}", item_id=item_id)
+
+
+@dataclass
+class ItemOption(ButtonOption):
+    _: KW_ONLY
+    item_id: int
+
+    display_name: str = field(init=False, default="")  # type: ignore
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        del self.display_name
+        del self.description
+        del self.description_title
+
+    @cached_property
+    def display_name(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+        try:
+            with open_db("r") as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        format(
+                            '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18"/>  %s',
+                            IIF(NumCollected <= 0,
+                                'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked',
+                                'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked'),
+                            Name
+                        )
+                    FROM
+                        CollectedItems
+                    WHERE
+                        ID = ?
+                    """,
+                    (self.item_id,),
                 )
-            FROM
-            (
-                SELECT
-                    Name,
-                    Description,
-                    (SELECT CollectTime FROM Collected as c WHERE c.ItemID = i.ID) as CollectTime
-                FROM
-                    Items as i
-                WHERE
-                    ID = ?
-            )
-            """,
-            (item_id,),
-        )
-        name, description_title, description = cur.fetchone()
-        return ButtonOption(name, description=description, description_title=description_title)
+                return cur.fetchone()[0]
+
+        except Exception:  # noqa: BLE001
+            fail_msg = f"Failed to get name for item id {self.item_id}"
+            logging.error(fail_msg)
+            traceback.print_exc()
+            return fail_msg
+
+    @cached_property
+    def description_title(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+        try:
+            with open_db("r") as cur:
+                cur.execute("SELECT Name FROM Items WHERE ID = ?", (self.item_id,))
+                return cur.fetchone()[0]
+
+        except Exception:  # noqa: BLE001
+            fail_msg = f"Failed to get description title for item id {self.item_id}"
+            logging.error(fail_msg)
+            traceback.print_exc()
+            return fail_msg
+
+    @cached_property
+    def description(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+        try:
+            with open_db("r") as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        CASE NumCollected
+                            WHEN 0 THEN Description
+                            WHEN 1 THEN format(
+                                'Collected %s%c%c%s',
+                                datetime(FirstCollectTime, 'localtime'),
+                                char(10),
+                                char(10),
+                                Description
+                            )
+                            ELSE format(
+                                'Collected %d times, first at %s%c%c%s',
+                                NumCollected,
+                                datetime(FirstCollectTime, 'localtime'),
+                                char(10),
+                                char(10),
+                                Description
+                            )
+                        END
+                    FROM
+                        CollectedItems
+                    WHERE
+                        ID = ?
+                    """,
+                    (self.item_id,),
+                )
+                return cur.fetchone()[0]
+
+        except Exception:  # noqa: BLE001
+            fail_msg = f"Failed to get description title for item id {self.item_id}"
+            logging.error(fail_msg)
+            traceback.print_exc()
+            return fail_msg
 
 
 @dataclass
@@ -89,11 +149,11 @@ class MapOption(NestedOption):
                     SELECT
                         format(
                             'Total: %d/%d (%d%%)%c%c%s',
-                            COUNT(*) FILTER (WHERE IsCollected),
+                            COUNT(*) FILTER (WHERE NumCollected > 0),
                             COUNT(*),
                             (
                                 100.0 * IFNULL(
-                                    SUM(Points) FILTER (WHERE IsCollected),
+                                    SUM(Points) FILTER (WHERE NumCollected > 0),
                                     0
                                 ) / SUM(Points)
                             ),
@@ -107,7 +167,7 @@ class MapOption(NestedOption):
                                     SELECT
                                         (
                                             '<img src="img://Game/UI/Menus/Debug/'
-                                            || IIF(c.IsCollected,
+                                            || IIF(c.NumCollected > 0,
                                                     'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked',
                                                     'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked')
                                             || '" width="18" height="18"/>  '
@@ -184,11 +244,11 @@ class PlanetOption(NestedOption):
                     SELECT
                         format(
                             'Total: %d/%d (%d%%)%c%c%s',
-                            COUNT(*) FILTER (WHERE IsCollected),
+                            COUNT(*) FILTER (WHERE NumCollected > 0),
                             COUNT(*),
                             (
                                 100.0 * IFNULL(
-                                    SUM(Points) FILTER (WHERE IsCollected),
+                                    SUM(Points) FILTER (WHERE NumCollected > 0),
                                     0
                                 ) / SUM(Points)
                             ),
@@ -203,11 +263,11 @@ class PlanetOption(NestedOption):
                                         format(
                                             '%s: %d/%d (%d%%)',
                                             MapName,
-                                            COUNT(*) FILTER (WHERE IsCollected),
+                                            COUNT(*) FILTER (WHERE NumCollected > 0),
                                             COUNT(*),
                                             (
                                                 100.0 * IFNULL(
-                                                    SUM(Points) FILTER (WHERE IsCollected),
+                                                    SUM(Points) FILTER (WHERE NumCollected > 0),
                                                     0
                                                 ) / SUM(Points)
                                             )
@@ -314,18 +374,12 @@ def gen_progression_options() -> Iterator[BaseOption]:
                 100.0 * CollectedPoints / TotalPoints
             FROM (
                 SELECT
-                    COUNT(*) FILTER (WHERE IsCollected) as CollectedCount,
+                    COUNT(*) FILTER (WHERE NumCollected > 0) as CollectedCount,
                     COUNT(*) as TotalCount,
-                    IFNULL(SUM(Points) FILTER (WHERE IsCollected), 0) as CollectedPoints,
+                    IFNULL(SUM(Points) FILTER (WHERE NumCollected > 0), 0) as CollectedPoints,
                     SUM(Points) as TotalPoints
-                FROM (
-                    SELECT
-                        *
-                    FROM
-                        CollectedLocations
-                    GROUP BY
-                        ItemID
-                )
+                FROM
+                    CollectedItems
             )
             """,
         )

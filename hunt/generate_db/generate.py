@@ -476,11 +476,39 @@ if __name__ == "__main__":
         """
         CREATE TABLE Collected (
             ID          INTEGER NOT NULL UNIQUE,
-            ItemID      INTEGER NOT NULL UNIQUE,
+            ItemID      INTEGER NOT NULL,
             CollectTime TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ItemID) REFERENCES Items(ID)
         )
+        """,
+    )
+    cur.execute("CREATE INDEX CollectedItemIDIndex ON Collected(ItemID)")
+    cur.execute(
+        """
+        CREATE VIEW CollectedItems AS
+        SELECT
+            ID,
+            Name,
+            Description,
+            Points,
+            Balance,
+            (
+                SELECT COUNT(*) FROM Collected as c WHERE c.ItemID = i.ID
+            ) as NumCollected,
+            (
+                SELECT
+                    CollectTime
+                FROM
+                    Collected
+                WHERE
+                    ItemID = i.ID
+                ORDER BY
+                    CollectTime ASC
+                LIMIT 1
+            ) as FirstCollectTime
+        FROM
+            Items as i
         """,
     )
 
@@ -639,9 +667,9 @@ if __name__ == "__main__":
             l.MapName,
             l.ItemID,
             i.Points,
-            EXISTS (
-                SELECT 1 FROM Collected as c WHERE c.ItemID = i.ID
-            ) as IsCollected
+            (
+                SELECT COUNT(*) FROM Collected as c WHERE c.ItemID = i.ID
+            ) as NumCollected
         FROM
             ItemLocations as l
         LEFT JOIN
@@ -803,3 +831,6 @@ if __name__ == "__main__":
     )
     item_count, item_locations_item_count = cur.fetchone()
     assert item_count == item_locations_item_count
+
+    cur.close()
+    con.commit()
