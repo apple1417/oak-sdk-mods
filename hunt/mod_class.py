@@ -13,7 +13,6 @@ from mods_base import (
     NestedOption,
     SliderOption,
 )
-from unrealsdk import logging
 
 from .db import open_db, reset_db
 
@@ -29,103 +28,45 @@ def create_item_option(item_id: int) -> BaseOption:
     Returns:
         A new option.
     """
-    return ItemOption(f"Item ID {item_id}", item_id=item_id)
-
-
-@dataclass
-class ItemOption(ButtonOption):
-    _: KW_ONLY
-    item_id: int
-
-    display_name: str = field(init=False, default="")  # type: ignore
-
-    def __post_init__(self) -> None:
-        super().__post_init__()
-        del self.display_name
-        del self.description
-        del self.description_title
-
-    @cached_property
-    def display_name(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
-        try:
-            with open_db("r") as cur:
-                cur.execute(
-                    """
-                    SELECT
-                        format(
-                            '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18"/>  %s',
-                            IIF(NumCollected <= 0,
-                                'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked',
-                                'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked'),
-                            Name
-                        )
-                    FROM
-                        CollectedItems
-                    WHERE
-                        ID = ?
-                    """,
-                    (self.item_id,),
-                )
-                return cur.fetchone()[0]
-
-        except Exception:  # noqa: BLE001
-            fail_msg = f"Failed to get name for item id {self.item_id}"
-            logging.error(fail_msg)
-            traceback.print_exc()
-            return fail_msg
-
-    @cached_property
-    def description_title(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
-        try:
-            with open_db("r") as cur:
-                cur.execute("SELECT Name FROM Items WHERE ID = ?", (self.item_id,))
-                return cur.fetchone()[0]
-
-        except Exception:  # noqa: BLE001
-            fail_msg = f"Failed to get description title for item id {self.item_id}"
-            logging.error(fail_msg)
-            traceback.print_exc()
-            return fail_msg
-
-    @cached_property
-    def description(self) -> str:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
-        try:
-            with open_db("r") as cur:
-                cur.execute(
-                    """
-                    SELECT
-                        CASE NumCollected
-                            WHEN 0 THEN Description
-                            WHEN 1 THEN format(
-                                'Collected %s%c%c%s',
-                                datetime(FirstCollectTime, 'localtime'),
-                                char(10),
-                                char(10),
-                                Description
-                            )
-                            ELSE format(
-                                'Collected %d times, first at %s%c%c%s',
-                                NumCollected,
-                                datetime(FirstCollectTime, 'localtime'),
-                                char(10),
-                                char(10),
-                                Description
-                            )
-                        END
-                    FROM
-                        CollectedItems
-                    WHERE
-                        ID = ?
-                    """,
-                    (self.item_id,),
-                )
-                return cur.fetchone()[0]
-
-        except Exception:  # noqa: BLE001
-            fail_msg = f"Failed to get description title for item id {self.item_id}"
-            logging.error(fail_msg)
-            traceback.print_exc()
-            return fail_msg
+    with open_db("r") as cur:
+        cur.execute(
+            """
+            SELECT
+                format(
+                    '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18"/>  %s',
+                    IIF(NumCollected <= 0,
+                        'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked',
+                        'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked'),
+                    Name
+                ),
+                Name,
+                CASE NumCollected
+                    WHEN 0 THEN Description
+                    WHEN 1 THEN format(
+                        'Collected %s%c%c%s',
+                        datetime(FirstCollectTime, 'localtime'),
+                        char(10),
+                        char(10),
+                        Description
+                    )
+                    ELSE format(
+                        'Collected %d times, first at %s%c%c%s',
+                        NumCollected,
+                        datetime(FirstCollectTime, 'localtime'),
+                        char(10),
+                        char(10),
+                        Description
+                    )
+                END
+            FROM
+                CollectedItems
+            WHERE
+                ID = ?
+            """,
+            (item_id,),
+        )
+        title, description_title, description = cur.fetchone()
+        return ButtonOption(title, description_title=description_title, description=description)
 
 
 @dataclass
