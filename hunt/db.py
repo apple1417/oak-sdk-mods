@@ -5,7 +5,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Literal
 
-DB_PATH = Path(__file__).with_name("hunt.sqlite3")
+from mods_base import SETTINGS_DIR, open_in_mod_dir
+
+DB_PATH = SETTINGS_DIR / "hunt.sqlite3"
 DB_TEMPLATE_PATH = Path(__file__).parent / "generate_db" / "hunt.sqlite3"
 
 cached_readonly_con: sqlite3.Connection | None = None
@@ -61,7 +63,8 @@ def reset_db() -> None:
     cached_readwrite_con = None
 
     DB_PATH.unlink(missing_ok=True)
-    shutil.copy2(DB_TEMPLATE_PATH, DB_PATH)
+    with open_in_mod_dir(DB_TEMPLATE_PATH, binary=True) as template, DB_PATH.open("wb") as db:
+        shutil.copyfileobj(template, db)
 
     with open_db("w") as cur:
         cur.execute(

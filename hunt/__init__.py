@@ -13,4 +13,5 @@ build_mod(
     cls=HuntTracker,
     supported_games=Game.BL3,
     hooks=[drop_hook, itemcard_hook, world_change_hook],
+    settings_file=None,
 )
