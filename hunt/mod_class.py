@@ -352,16 +352,24 @@ def reset_playthrough_dialog(choice: DialogBoxChoice) -> None:  # noqa: D103
     if choice != reset_playthrough_choice:
         return
 
-    reset_db()
-    DialogBox(
-        "Reset Playthrough",
-        (DialogBoxChoice("Ok"),),
-        (
-            "Your playthrough has been reset.\n"
-            "\n"
-            "Note you will need to re-open the Mods menu in order for the options to update."
-        ),
-    )
+    try:
+        reset_db()
+        DialogBox(
+            "Reset Playthrough",
+            (DialogBoxChoice("Ok"),),
+            (
+                "Your playthrough has been reset.\n"
+                "\n"
+                "Note you will need to re-open the Mods menu in order for the options to update."
+            ),
+        )
+    except OSError as ex:
+        DialogBox(
+            "Reset Playthrough",
+            (DialogBoxChoice("Ok"),),
+            "Failed to reset playthrough!\n\n" + "".join(traceback.format_exception_only(ex)),
+        )
+        traceback.print_exc()
 
 
 @ButtonOption(
