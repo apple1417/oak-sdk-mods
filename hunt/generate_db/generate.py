@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import csv
 import sqlite3
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -232,6 +233,192 @@ WORLD_DROP_BALANCE_PATTERNS_PER_MAP: dict[str, str] = {
     "Any Map (Jackpot)": "/Game/PatchDLC/Dandelion/Gear/%",
 }
 
+TRUE_TRIAL_EXTRA_DROPS: tuple[tuple[str, str], ...] = (
+    (
+        "/Game/PatchDLC/Geranium/Gear/Weapon/_Unique/Flipper/Balance/Balance_SM_MAL_Flipper.Balance_SM_MAL_Flipper",
+        "/Game/Enemies/Mech/_Unique/TrialBoss/_Design/Character/BPChar_Mech_TrialBoss.BPChar_Mech_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Mayhem2/Gear/Weapon/_Shared/_Unique/Kaoson/Balance/Balance_SM_DAHL_Kaoson.Balance_SM_DAHL_Kaoson",
+        "/Game/Enemies/Mech/_Unique/TrialBoss/_Design/Character/BPChar_Mech_TrialBoss.BPChar_Mech_TrialBoss_C",
+    ),
+    (
+        "/Game/Gear/Weapons/Pistols/Jakobs/_Shared/_Design/_Unique/Maggie/Balance/Balance_PS_JAK_Maggie.Balance_PS_JAK_Maggie",
+        "/Game/Enemies/Goon/_Unique/TrialBoss/_Design/Character/BPChar_Goon_TrialBoss.BPChar_Goon_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Alisma/Gear/Weapon/_Unique/Convergence/Balance/Balance_SG_HYP_Convergence.Balance_SG_HYP_Convergence",
+        "/Game/Enemies/Goon/_Unique/TrialBoss/_Design/Character/BPChar_Goon_TrialBoss.BPChar_Goon_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Ixora2/Gear/Weapons/_Unique/Replay/Balance/Balance_PS_ATL_Replay.Balance_PS_ATL_Replay",
+        "/Game/Enemies/Guardian/_Unique/TrialBoss/_Design/Character/BPChar_Guardian_TrialBoss.BPChar_Guardian_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Mayhem2/Gear/Weapon/_Shared/_Unique/Monarch/Balance/Balance_AR_VLA_Monarch.Balance_AR_VLA_Monarch",
+        "/Game/Enemies/Guardian/_Unique/TrialBoss/_Design/Character/BPChar_Guardian_TrialBoss.BPChar_Guardian_TrialBoss_C",
+    ),
+    (
+        "/Game/Gear/Weapons/Shotguns/Torgue/_Shared/_Design/_Unique/TheLob/Balance/Balance_SG_Torgue_ETech_TheLob.Balance_SG_Torgue_ETech_TheLob",
+        "/Game/Enemies/Skag/_Unique/TrialBoss/_Design/Character/BPChar_Skag_TrialBoss.BPChar_Skag_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Dandelion/Gear/Weapon/_Unique/Lucky7/Balance/Balance_PS_JAK_Lucky7.Balance_PS_JAK_Lucky7",
+        "/Game/Enemies/Skag/_Unique/TrialBoss/_Design/Character/BPChar_Skag_TrialBoss.BPChar_Skag_TrialBoss_C",
+    ),
+    (
+        "/Game/Gear/Weapons/AssaultRifles/Vladof/_Shared/_Design/_Unique/Sickle/Balance/Balance_AR_VLA_Sickle.Balance_AR_VLA_Sickle",
+        "/Game/Enemies/Tink/_Unique/TrialBoss/_Design/Character/BPChar_Tink_TrialBoss.BPChar_Tink_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Hibiscus/Gear/Weapon/_Unique/Skullmasher/Balance/Balance_SR_JAK_Skullmasher.Balance_SR_JAK_Skullmasher",
+        "/Game/Enemies/Tink/_Unique/TrialBoss/_Design/Character/BPChar_Tink_TrialBoss.BPChar_Tink_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Ixora/Gear/Weapons/_Unique/Tizzy/Balance/Balance_PS_COV_Tizzy.Balance_PS_COV_Tizzy",
+        "/Game/Enemies/Saurian/_Unique/TrialBoss/_Design/Character/BPChar_Saurian_TrialBoss.BPChar_Saurian_TrialBoss_C",
+    ),
+    (
+        "/Game/PatchDLC/Mayhem2/Gear/Weapon/_Shared/_Unique/Backburner/Balance/Balance_HW_VLA_ETech_BackBurner.Balance_HW_VLA_ETech_BackBurner",
+        "/Game/Enemies/Saurian/_Unique/TrialBoss/_Design/Character/BPChar_Saurian_TrialBoss.BPChar_Saurian_TrialBoss_C",
+    ),
+)
+
+CRAZY_EARL_DOOR: (
+    str
+) = "/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/BP_CrazyEarlDoor.BP_CrazyEarlDoor_C"
+
+ENEMY_NAME_OVERRIDES: dict[str, str | None] = {
+    "Crawly, Cybil": "Cybil Crawly",
+    "Crawly, Edie": "Edie Crawly",
+    "Crawly, Martha": "Martha Crawly",
+    "Crawly, Matty": "Matty Crawly",
+    "Ipswitch Dunne (v1)": "Ipswitch Dunne",
+    "Ipswitch Dunne (v2)": None,
+    "Power Troopers - Black": "Black Power Troopers",
+    "Power Troopers - Blue": "Blue Power Troopers",
+    "Power Troopers - Pink": "Pink Power Troopers",
+    "Power Troopers - Red": "Red Power Troopers",
+    "Power Troopers - Yellow": "Yellow Power Troopers",
+    "Psychobillies - Billy": "Billy (Psychobillies)",
+    # These aren't killable so we remove them from the list
+    "Eadric Edelhard": None,
+    "The Black Rook": None,
+}
+
+ARMS_RACE_EXTRA_SOURCES: dict[str, str] = {
+    "Eternal Flame": "Dam, WTF",
+    "Binary Operator": "Dam, WTF",
+    "Boogeyman": "Dam, WTF",
+    "Kickcharger": "Dam, WTF",
+    "Kensei": "Dreadnought Drydock",
+    "Holy Grail / King Arthur's Holy Grail / Perceval's Holy Grail": "Dreadnought Drydock",
+    "Deathrattle": "Dreadnought Drydock",
+    "Infernal Wish": "Launch Command",
+    "Beskar": "Launch Command",
+    "HOT Spring / Soothing HOT Spring / Thermal HOT Spring": "Launch Command",
+    "Superconducting Plasma Coil": "Madwidth Power",
+    "Dark Army / Exceptional Dark Army / Exceptional Dark Army +": "Madwidth Power",
+    "Spy": "Madwidth Power",
+    "Gas Mask": "Plunderdome",
+    "Madcap": "Plunderdome",
+    "Toboggan": "Plunderdome",
+    "Torrent": "Seepage and Creepage",
+    "Hotfoot Teddy": "Seepage and Creepage",
+    "Critical Thug / Critical Thug x2": "Seepage and Creepage",
+    "Res": "Shipping Encouraged",
+    "Firefly": "Shipping Encouraged",
+    "Bloodstained Trickshot / Snide Trickshot": "The Hunker Bunker",
+    "Fasterfied Tizzy / Moar Fasterfied Tizzy": "The Hunker Bunker",
+    "3RR0R Cmdl3t": "The Hunker Bunker",
+}
+
+
+@dataclass
+class SourceRestrictionData:
+    item_names: tuple[str, ...]
+    restriction: str
+
+
+COMMON_SOURCE_RESTRICTIONS: tuple[SourceRestrictionData, ...] = (
+    SourceRestrictionData(
+        (
+            "Polyaimourous",
+            "Wedding Invitation",
+        ),
+        " <font color='#9900FF'>[L72]</font>",
+    ),
+    SourceRestrictionData(
+        (
+            "Antifreeze",
+            "Crader's EM-P5",
+            "Good Juju",
+            "Juliet's Dazzle",
+            "R4kk P4k",
+            "Raging Bear",
+            "S3RV-80S-EXECUTE",
+            "Spiritual Driver",
+            "Tankman's Shield",
+            "Vosk's Deathgrip",
+            "Zheitsev's Eruption",
+        ),
+        " <font color='#FF0000'>[M4]</font>",
+    ),
+    SourceRestrictionData(
+        (
+            "Backburner",
+            "D.N.A.",
+            "Kaoson",
+            "Multi-tap",
+            "Plaguebearer",
+            "Reflux",
+            "Sand Hawk",
+            "The Monarch",
+        ),
+        " <font color='#FF0000'>[M6]</font>",
+    ),
+)
+
+# The true trial restrictions should overwrite the basic ones
+# In theory they could happen at the same time, but gearbox didn't mayhem restrict them
+TRUE_TRIAL_RESTRICTION: str = " <font color='#008000'>[TT]</font>"
+TRUE_TRIAL_RESTRICTION_NAMES: tuple[tuple[str, str], ...] = (
+    ("Boom Sickle / Sickle", "Tink of Cunning"),
+    ("Skullmasher", "Tink of Cunning"),
+    ("Lucky 7", "Skag of Survival"),
+    ("The Lob", "Skag of Survival"),
+    ("Flipper", "Arbalest of Discipline"),
+    ("Kaoson", "Arbalest of Discipline"),
+    ("Atlas Replay", "Sera of Supremacy"),
+    ("The Monarch", "Sera of Supremacy"),
+    ("Convergence", "Hag of Fervor"),
+    ("Maggie", "Hag of Fervor"),
+    ("Backburner", "Tyrant of Instinct"),
+    ("Fasterfied Tizzy / Moar Fasterfied Tizzy", "Tyrant of Instinct"),
+)
+
+
+def match_source_restriction(item_name: str, enemy_name: str) -> str | None:
+    """
+    Checks if the given item-enemy combo has a restriction.
+
+    Args:
+        item_name: The item to check.
+        enemy_name: The enemy to check.
+    Returns:
+        The restriction, or None if there isn't one.
+    """
+    restriction: str | None = None
+    for restriction_data in COMMON_SOURCE_RESTRICTIONS:
+        if item_name in restriction_data.item_names:
+            restriction = restriction_data.restriction
+            break
+
+    if (item_name, enemy_name) in TRUE_TRIAL_RESTRICTION_NAMES:
+        restriction = TRUE_TRIAL_RESTRICTION
+
+    return restriction
+
 
 def open_hunt_db() -> sqlite3.Connection:
     """
@@ -247,8 +434,11 @@ def open_hunt_db() -> sqlite3.Connection:
 
     cur.execute("PRAGMA foreign_keys = ON")
     cur.execute("ATTACH DATABASE ? AS uniques", (f"file:{UNIQUES_DB}?mode=ro",))
-    del cur
 
+    cur.execute("SELECT CAST(Value AS INT) FROM uniques.MetaData WHERE Key = 'Version'")
+    assert cur.fetchone()[0] == 13
+
+    cur.close()
     return con
 
 
@@ -283,24 +473,90 @@ def find_uniques_item_id(con: sqlite3.Connection, name: str) -> int:
     return rows[0][0]
 
 
-def format_item_description(
-    con: sqlite3.Connection,
-    uniques_item_id: int,
-    base_description: str,
-    points: int,
-) -> str:
+def iter_item_sources(con: sqlite3.Connection, item_id: int) -> Iterator[str]:
     """
-    Formats the basic item description from the hunt sheet into the full description for use ingame.
+    Iterates through all the sources we consider valid for an item.
 
     Args:
         con: The database connection to use.
-        uniques_item_id: The item id in the uniques database.
-        base_description: The basic item description from the sheet.
-        points: How many points this item is worth.
+        item_id: The item id.
+    Yields:
+        The name of each source.
+    """
+    cur = con.cursor()
+    cur.execute("SELECT Name FROM Items WHERE ID = ?", (item_id,))
+    item_name = cur.fetchone()[0]
+
+    cur.execute(
+        """
+        SELECT
+            d.EnemyClass,
+            s.Description
+        FROM
+            Drops as d
+        LEFT JOIN
+            Items as i ON d.ItemBalance = i.Balance
+        LEFT JOIN
+            uniques.Sources as s ON d.EnemyClass = (s.ObjectName || '_C')
+        WHERE
+            i.ID = ?
+        """,
+        (item_id,),
+    )
+
+    world_drops_allowed = False
+    for enemy_class, combined_enemy_name in cur.fetchall():
+        if enemy_class is None:
+            world_drops_allowed = True
+            assert combined_enemy_name is None
+            continue
+
+        if enemy_class in (x[1] for x in CARTEL_DUPLICATE_MINIBOSSES):
+            continue
+        if enemy_class == CRAZY_EARL_DOOR:
+            combined_enemy_name = "Crazy Earl (redeeming Loot-o-Gram) / Dinklebot (via Loot-o-Gram)"
+
+        for base_enemy_name in sorted(combined_enemy_name.split(" / ")):
+            enemy_name = ENEMY_NAME_OVERRIDES.get(base_enemy_name, base_enemy_name)
+            if enemy_name is None:
+                continue
+
+            yield enemy_name + (match_source_restriction(item_name, enemy_name) or "")
+
+    if item_name in ARMS_RACE_EXTRA_SOURCES:
+        yield ARMS_RACE_EXTRA_SOURCES[item_name]
+        yield "Heavyweight Harker"
+
+    if world_drops_allowed:
+        yield "World Drops"
+
+
+def format_full_item_description(con: sqlite3.Connection, item_id: int) -> str:
+    """
+    Formats the info available in the database into the full item description for use in game.
+
+    Must not be called twice on the same item.
+
+    Args:
+        con: The database connection to use.
+        item_id: The item id.
     Return:
         The formatted description.
     """
     cur = con.cursor()
+    cur.execute(
+        """
+        SELECT
+            Description,
+            Points
+        FROM
+            Items
+        WHERE
+            ID = ?
+        """,
+        (item_id,),
+    )
+    base_description, points = cur.fetchone()
 
     rarity_colour = ""
     for prefix, prefix_colour in RARITY_COLOURS:
@@ -331,7 +587,10 @@ def format_item_description(
     if cur.fetchone()[0] > 0:
         formatted_description += "Can World Drop\n"
 
-    formatted_description += "\nCollectable from:\n- TODO\n"
+    formatted_description += "\nCollectable from:\n<ul>"
+    for source in sorted(iter_item_sources(con, item_id)):
+        formatted_description += f"<li>{source}</li>"
+    formatted_description += "</ul>"
 
     return formatted_description
 
@@ -453,6 +712,8 @@ if __name__ == "__main__":
 
             uniques_item_id = find_uniques_item_id(con, name.split(" / ")[0])
 
+            # Insert the basic description for now, we'll format the full one later once we have
+            # more useful info in the DB
             cur.execute(
                 """
                 INSERT INTO
@@ -466,7 +727,7 @@ if __name__ == "__main__":
                 """,
                 (
                     name,
-                    format_item_description(con, uniques_item_id, description, points),
+                    description,
                     points,
                     uniques_item_id,
                 ),
@@ -556,12 +817,12 @@ if __name__ == "__main__":
         UPDATE
             Drops
         SET
-            EnemyClass = '/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/'
-                         || 'BP_CrazyEarlDoor.BP_CrazyEarlDoor_C'
+            EnemyClass = ?
         WHERE
             EnemyClass = '/Game/Enemies/Oversphere/_Unique/Rare01/_Design/Character/'
                          || 'BPChar_OversphereRare01.BPChar_OversphereRare01_C'
         """,
+        (CRAZY_EARL_DOOR,),
     )
     # Duplicate the cartel minibosses
     for existing, duplicate in CARTEL_DUPLICATE_MINIBOSSES:
@@ -593,6 +854,17 @@ if __name__ == "__main__":
             )
         """,
     )
+    # Add the true trial drops
+    for item, enemy_class in TRUE_TRIAL_EXTRA_DROPS:
+        cur.execute(
+            """
+            INSERT INTO
+                Drops (ItemBalance, EnemyClass)
+            VALUES
+                (?, ?)
+            """,
+            (item, enemy_class),
+        )
 
     cur.execute(
         """
@@ -633,6 +905,21 @@ if __name__ == "__main__":
             )
         """,
     )
+
+    # Go back and actually format the item descriptions, now that we've collected all valid sources
+    cur.execute("SELECT MAX(ID) FROM Items")
+    for item_id in range(1, cur.fetchone()[0] + 1):
+        cur.execute(
+            """
+            UPDATE
+                Items
+            SET
+                Description = ?
+            WHERE
+                ID = ?
+            """,
+            (format_full_item_description(con, item_id), item_id),
+        )
 
     # We essentially pre-join the planet and maps table into this one for more efficient lookups at
     # runtime
@@ -727,6 +1014,7 @@ if __name__ == "__main__":
                 )
                 map_item_ids |= {x[0] for x in cur.fetchall()}
 
+            # Order by what's in the description after the collectable, i.e. the enemies
             cur.execute(
                 f"""
                 INSERT INTO
@@ -735,16 +1023,12 @@ if __name__ == "__main__":
                     ?, ?, ?, ?, ?, i.ID
                 FROM
                     Items as i
-                LEFT JOIN
-                    uniques.Items as ui ON i.Balance = ui.ObjectName
-                INNER JOIN
-                    uniques.ObtainedFrom as o ON ui.ID = o.ItemID
-                INNER JOIN
-                    uniques.Sources as s ON o.SourceID = s.ID
                 WHERE
                     i.ID in ({','.join(['?'] * len(map_item_ids))})
                 ORDER BY
-                    s.Description, i.Name
+                    SUBSTR(Description,
+                           INSTR(Description, 'Collectable from:')),
+                    i.Name
                 """,
                 (planet_id, planet.name, map_id, map_name, world_name, *map_item_ids),
             )
