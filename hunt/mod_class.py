@@ -1,3 +1,4 @@
+import os
 import traceback
 from collections.abc import Iterator, Sequence
 from dataclasses import KW_ONLY, dataclass, field
@@ -15,6 +16,7 @@ from mods_base import (
 )
 
 from .db import open_db, reset_db
+from .tokens import redeem_token_option
 
 
 # Cache this since the same item may exist in multiple maps
@@ -339,6 +341,38 @@ def gen_progression_options() -> Iterator[BaseOption]:
             )
 
 
+def gen_token_options() -> Iterator[BaseOption]:
+    """
+    Generates all the options which are used to display the world drop token overview.
+
+    Yields:
+        The child options.
+    """
+    with open_db("r") as cur:
+        cur.execute("SELECT format('Available Tokens: %d', Tokens) FROM AvailableTokens")
+        title = cur.fetchone()[0]
+        yield ButtonOption(
+            title,
+            description=(
+                "On the item inspection screen, you can spend World Drop Tokens to redeem items"
+                " which you got as a world drop (or from any other source not normally allowed).\n"
+                "\n"
+                "You initally have one world drop token, and can earn more by completing the main"
+                " campagin missions. Subsequent completions are worth more.\n"
+                "<font color='#FFFFFF'><b>Mission\t\t\t\t\t\t\tFirst\t\tSubsequent</b></font>\n"
+                "<font color='#B0E0F0'>"
+                "Divine Retribution\t\t\t\t\t2\t\t20\n"
+                "All Bets Off\t\t\t\t\t\t1\t\t7\n"
+                "The Call of Gythian\t\t\t\t\t1\t\t7\n"
+                "Riding to Ruin\t\t\t\t\t\t1\t\t5\n"
+                "Locus of Rage\t\t\t\t\t\t1\t\t5\n"
+                "Mysteriouslier: Horror at Scryer's Crypt\t1\t\t3\n"
+                "</font>"
+            ),
+        )
+        yield redeem_token_option
+
+
 reset_playthrough_choice = DialogBoxChoice("Reset Playthrough")
 
 
@@ -383,13 +417,27 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
 @dataclass
 class HuntTracker(Mod):
     def iter_display_options(self) -> Iterator[BaseOption]:  # noqa: D102
-        yield from super().iter_display_options()
+        for option in super().iter_display_options():
+            if isinstance(option, GroupedOption) and option.identifier == "Options":
+                break
+            yield option
 
         try:
             create_item_option.cache_clear()
 
+            yield ButtonOption(
+                "Open Rules",
+                on_press=lambda _: os.startfile("https://pastebin.com/NQ9YR5ZS"),  # type: ignore
+                description=(
+                    "Open the rules in your browser.\n"
+                    "\n"
+                    "If pressing the button does nothing, you can view them at:\n"
+                    "<font size='40' color='#FFFFFF'>https://pastebin.com/NQ9YR5ZS</font>"
+                ),
+            )
             yield reset_playthrough_button
             yield GroupedOption("Progression", tuple(gen_progression_options()))
+            yield GroupedOption("World Drop Tokens", tuple(gen_token_options()))
 
             # See if we can add the current world
             world: str = ENGINE.GameViewport.World.Name

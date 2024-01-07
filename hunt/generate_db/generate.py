@@ -284,6 +284,39 @@ TRUE_TRIAL_EXTRA_DROPS: tuple[tuple[str, str], ...] = (
     ),
 )
 
+MISSION_TOKEN_REWARDS: tuple[tuple[str, int, int], ...] = (
+    (
+        "/Game/Missions/Plot/Mission_Ep23_TyreenFinalBoss.Mission_Ep23_TyreenFinalBoss_C",
+        2,
+        20,
+    ),
+    (
+        "/Game/PatchDLC/Dandelion/Missions/Plot/Mission_DLC1_Ep07_TheHeist.Mission_DLC1_Ep07_TheHeist_C",
+        1,
+        7,
+    ),
+    (
+        "/Game/PatchDLC/Hibiscus/Missions/Plot/EP06_DLC2.EP06_DLC2_C",
+        1,
+        7,
+    ),
+    (
+        "/Game/PatchDLC/Geranium/Missions/Plot/Mission_Ep05_Crater.Mission_Ep05_Crater_C",
+        1,
+        5,
+    ),
+    (
+        "/Game/PatchDLC/Alisma/Missions/Plot/ALI_EP05.ALI_EP05_C",
+        1,
+        5,
+    ),
+    (
+        "/Game/PatchDLC/Ixora2/Missions/Side/Mission_Ixora_Main04.Mission_Ixora_Main04_C",
+        1,
+        3,
+    ),
+)
+
 CRAZY_EARL_DOOR: (
     str
 ) = "/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/BP_CrazyEarlDoor.BP_CrazyEarlDoor_C"
@@ -1115,6 +1148,75 @@ if __name__ == "__main__":
     )
     item_count, item_locations_item_count = cur.fetchone()
     assert item_count == item_locations_item_count
+
+    cur.execute(
+        """
+        CREATE TABLE TokenRedeems (
+            ID          INTEGER NOT NULL UNIQUE,
+            CollectedID INTEGER NOT NULL UNIQUE,
+            PRIMARY KEY(ID AUTOINCREMENT),
+            FOREIGN KEY(CollectedID) REFERENCES Collected(ID)
+        )
+        """,
+    )
+    cur.execute(
+        """
+        CREATE TABLE CompletedMissions (
+            ID               INTEGER NOT NULL UNIQUE,
+            MissionClass     TEXT NOT NULL,
+            CompleteTime     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(ID AUTOINCREMENT)
+        )
+        """,
+    )
+    cur.execute(
+        """
+        CREATE TABLE MissionTokens (
+            ID               INTEGER NOT NULL UNIQUE,
+            MissionClass     STRING NOT NULL UNIQUE,
+            InitalTokens     INTEGER,
+            SubsequentTokens INTEGER,
+            PRIMARY KEY(ID AUTOINCREMENT)
+        )
+        """,
+    )
+    for row in MISSION_TOKEN_REWARDS:
+        cur.execute(
+            """
+            INSERT INTO
+                MissionTokens (MissionClass, InitalTokens, SubsequentTokens)
+            VALUES
+                (?, ?, ?)
+            """,
+            row,
+        )
+    cur.execute(
+        """
+        CREATE VIEW AvailableTokens AS
+        SELECT
+            (
+                IFNULL(SUM(Tokens), 0)
+                + 1
+                - IFNULL((SELECT COUNT(*) FROM TokenRedeems), 0)
+            )
+            as Tokens
+        FROM
+        (
+            SELECT
+                CASE COUNT(*)
+                    WHEN 0 THEN 0
+                    WHEN 1 THEN t.InitalTokens
+                    ELSE t.InitalTokens + (t.SubsequentTokens * (COUNT(*) - 1))
+                END as Tokens
+            FROM
+                MissionTokens as t
+            INNER JOIN
+                CompletedMissions as c ON t.MissionClass = c.MissionClass
+            GROUP BY
+                t.ID
+        )
+        """,
+    )
 
     cur.close()
     con.commit()
