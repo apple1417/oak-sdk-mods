@@ -8,6 +8,7 @@ from ui_utils import show_hud_message
 from unrealsdk import logging
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .balance import get_inventory_balance_name
 from .db import open_db
 
 """
@@ -163,7 +164,7 @@ def itemcard_hook(
         # Not in set
         return
 
-    bal = obj.CachedInventoryBalanceComponent.InventoryBalanceData._path_name()
+    bal = get_inventory_balance_name(obj.CachedInventoryBalanceComponent)
     with open_db("w") as cur:
         cur.execute(
             """

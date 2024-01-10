@@ -2,22 +2,13 @@
 
 from typing import Any
 
-import unrealsdk
 from bl3_mod_menu import DialogBox, DialogBoxChoice
 from mods_base import EInputEvent, KeybindOption, hook, raw_keybinds
 from ui_utils import show_hud_message
-from unrealsdk.unreal import BoundFunction, UFunction, UObject, WrappedStruct
+from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
+from .balance import get_inventory_balance_name
 from .db import open_db
-
-HINT_BAR_APPEND_FUNC: UFunction = unrealsdk.find_object(  # type: ignore
-    "Function",
-    "/Script/GbxUI.GbxHintBarWidgetContainer:HintBarAppendHint",
-)
-HUD_STATE_INSPECT_MENU = unrealsdk.find_object(
-    "GbxHUDStateData",
-    "/Game/UI/HUD/HUDStates/UIData_HUDState_InspectMenu.UIData_HUDState_InspectMenu",
-)
 
 redeem_token_option = KeybindOption(
     "Redeem Item",
@@ -87,8 +78,7 @@ def item_inspect_start_hook(
     if redeem_token_option.value is None:
         return
 
-    # TODO: if this is one of the combined COM/Artifact balances, convert it to the standalone
-    bal = obj.InspectionSourceBalanceComponent.InventoryBalanceData._path_name()
+    bal = get_inventory_balance_name(obj.InspectionSourceBalanceComponent)
     with open_db("r") as cur:
         cur.execute(
             """
@@ -125,14 +115,6 @@ def item_inspect_start_hook(
 
     raw_keybinds.push()
     raw_keybinds.add(redeem_token_option.value, EInputEvent.IE_Pressed, redeem_confirm_dialog.show)
-
-    # BoundFunction(HINT_BAR_APPEND_FUNC, obj.HintBarContainer)(
-    #     unrealsdk.make_struct(
-    #         "GbxHintInfo",
-    #         InputActions=["GbxMenu_Primary"],
-    #         HelpText="World Drops",
-    #     ),
-    # )
 
 
 @hook("/Script/OakGame.OakHUD:StateChanged")
