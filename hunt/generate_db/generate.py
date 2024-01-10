@@ -1174,7 +1174,7 @@ if __name__ == "__main__":
         CREATE TABLE MissionTokens (
             ID               INTEGER NOT NULL UNIQUE,
             MissionClass     STRING NOT NULL UNIQUE,
-            InitalTokens     INTEGER,
+            InitialTokens    INTEGER,
             SubsequentTokens INTEGER,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
@@ -1184,7 +1184,7 @@ if __name__ == "__main__":
         cur.execute(
             """
             INSERT INTO
-                MissionTokens (MissionClass, InitalTokens, SubsequentTokens)
+                MissionTokens (MissionClass, InitialTokens, SubsequentTokens)
             VALUES
                 (?, ?, ?)
             """,
@@ -1205,8 +1205,8 @@ if __name__ == "__main__":
             SELECT
                 CASE COUNT(*)
                     WHEN 0 THEN 0
-                    WHEN 1 THEN t.InitalTokens
-                    ELSE t.InitalTokens + (t.SubsequentTokens * (COUNT(*) - 1))
+                    WHEN 1 THEN t.InitialTokens
+                    ELSE t.InitialTokens + (t.SubsequentTokens * (COUNT(*) - 1))
                 END as Tokens
             FROM
                 MissionTokens as t
