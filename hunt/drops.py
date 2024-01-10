@@ -34,24 +34,28 @@ so we keep a reference to it to double check against on drawing an item card.
 valid_pickups: set[UObject] = set()
 
 # There are some scenarios where a tonne of items get spawned very quickly
-
-# Store inventory categories to ignore directly, which'll just do fast pointer comparisons
-INV_CAT_AMMO = unrealsdk.find_object(
-    "InventoryCategoryData",
-    "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Ammo.InventoryCategory_Ammo",
-)
-INV_CAT_ERIDIUM = unrealsdk.find_object(
-    "InventoryCategoryData",
-    "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Eridium.InventoryCategory_Eridium",
-)
-INV_CAT_HEALTH = unrealsdk.find_object(
-    "InventoryCategoryData",
-    "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_InstantHealth.InventoryCategory_InstantHealth",
-)
-INV_CAT_MONEY = unrealsdk.find_object(
-    "InventoryCategoryData",
-    "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Money.InventoryCategory_Money",
-)
+# We can quickly discard them, before doing a db query or iterating through any requests, by
+# checking the drop's inventory category
+# We could go more in depth, but these are the main problems categories - and adding more risks
+# ignoring actual drops
+INVENTORY_CATEGORIES_TO_IGNORE: set[UObject] = {
+    unrealsdk.find_object(
+        "InventoryCategoryData",
+        "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Ammo.InventoryCategory_Ammo",
+    ),
+    unrealsdk.find_object(
+        "InventoryCategoryData",
+        "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Eridium.InventoryCategory_Eridium",
+    ),
+    unrealsdk.find_object(
+        "InventoryCategoryData",
+        "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_InstantHealth.InventoryCategory_InstantHealth",
+    ),
+    unrealsdk.find_object(
+        "InventoryCategoryData",
+        "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Money.InventoryCategory_Money",
+    ),
+}
 
 PICKUP_CATEGORY_PROP = unrealsdk.find_class("InventoryItemPickup")._find("PickupCategory")
 
@@ -65,7 +69,7 @@ def drop_hook(
     _3: Any,
     _4: BoundFunction,
 ) -> None:
-    if obj._get_field(PICKUP_CATEGORY_PROP) == INV_CAT_MONEY:
+    if obj._get_field(PICKUP_CATEGORY_PROP) in INVENTORY_CATEGORIES_TO_IGNORE:
         return
 
     cached_bal_comp = obj.CachedInventoryBalanceComponent
