@@ -1218,5 +1218,19 @@ if __name__ == "__main__":
         """,
     )
 
+    # Deliberately not making map a foreign key, in case anything in our db is wrong, and we get
+    # something new from the game.
+    cur.execute(
+        """
+        CREATE TABLE SaveQuits (
+            ID       INTEGER NOT NULL UNIQUE,
+            Map      TEXT NOT NULL,
+            Station  TEXT NOT NULL,
+            QuitTime TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(ID AUTOINCREMENT)
+        )
+        """,
+    )
+
     cur.close()
     con.commit()

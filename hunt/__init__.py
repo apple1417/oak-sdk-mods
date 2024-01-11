@@ -5,6 +5,7 @@ from mods_base import Game, build_mod
 
 from .drops import drop_hook, itemcard_hook, world_change_hook
 from .mod_class import HuntTracker
+from .sqs import sq_hook
 from .tokens import (
     item_inspect_end_hook,
     item_inspect_start_hook,
@@ -25,6 +26,7 @@ build_mod(
         mission_complete_hook,
         item_inspect_end_hook,
         item_inspect_start_hook,
+        sq_hook,
     ],
     options=[
         redeem_token_option,
