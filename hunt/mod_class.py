@@ -183,7 +183,7 @@ class HuntTracker(Mod):
 
             yield ButtonOption(
                 "Open Rules",
-                on_press=lambda _: os.startfile("https://pastebin.com/NQ9YR5ZS"),  # type: ignore
+                on_press=lambda _: os.startfile("https://pastebin.com/NQ9YR5ZS"),  # type: ignore  # noqa: S606
                 description=(
                     "Open the rules in your browser.\n"
                     "\n"

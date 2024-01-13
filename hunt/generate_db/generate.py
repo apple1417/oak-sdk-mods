@@ -469,7 +469,7 @@ def open_hunt_db() -> sqlite3.Connection:
     cur.execute("ATTACH DATABASE ? AS uniques", (f"file:{UNIQUES_DB}?mode=ro",))
 
     cur.execute("SELECT CAST(Value AS INT) FROM uniques.MetaData WHERE Key = 'Version'")
-    assert cur.fetchone()[0] == 13
+    assert cur.fetchone()[0] == 13  # noqa: PLR2004
 
     cur.close()
     return con
@@ -596,7 +596,7 @@ def format_full_item_description(con: sqlite3.Connection, item_id: int) -> str:
         if base_description.startswith(prefix):
             rarity_colour = prefix_colour
             break
-    assert rarity_colour != ""
+    assert rarity_colour
 
     formatted_description = (
         f"<font color='{rarity_colour}'>{base_description}</font>\n"
