@@ -233,6 +233,17 @@ WORLD_DROP_BALANCE_PATTERNS_PER_MAP: dict[str, str] = {
     "Any Map (Jackpot)": "/Game/PatchDLC/Dandelion/Gear/%",
 }
 
+ENEMY_EXTRA_ITEM_POOL_FILTERS: tuple[tuple[str, str], ...] = (
+    (
+        "/Game/Enemies/Psycho_Male/Badasss/_Design/Character/BPChar_PsychoBadass.BPChar_PsychoBadass_C",
+        "/Game/PatchDLC/Raid1/GameData/Loot/ItemPools/ItemPool_Mincemeat.ItemPool_Mincemeat",
+    ),
+    (
+        "/Game/Enemies/Enforcer/Anointed/_Design/Character/BPChar_EnforcerAnointed.BPChar_EnforcerAnointed_C",
+        "/Game/PatchDLC/Raid1/GameData/Loot/ItemPools/ItemPool_Muldock.ItemPool_Muldock",
+    ),
+)
+
 TRUE_TRIAL_EXTRA_DROPS: tuple[tuple[str, str], ...] = (
     (
         "/Game/PatchDLC/Geranium/Gear/Weapon/_Unique/Flipper/Balance/Balance_SM_MAL_Flipper.Balance_SM_MAL_Flipper",
@@ -1004,15 +1015,18 @@ if __name__ == "__main__":
         """,
     )
 
-    # When we detect a drop we have the balance and the enemy's class, hence using those two as the
-    # keys here - if the two exist in this table, it's a valid drop
-    # Use cascade on enemy class as we expect to change it later
+    # When we detect a drop we have the balance and the enemy's class, hence using those as the keys
+    # here, it's quicker to look up a single table
+    # A null enemy class means any enemy - i.e. any world drop is fine
+    # A non-null extra item pool is used to detect drops added via spawn options - e.g. Mincemeat
+    # uses the generic badass psycho class, but we don't want any badass psycho to get his drops
     cur.execute(
         """
         CREATE TABLE Drops (
-            ID          INTEGER NOT NULL UNIQUE,
-            ItemBalance STRING NOT NULL,
-            EnemyClass  STRING,
+            ID            INTEGER NOT NULL UNIQUE,
+            ItemBalance   STRING NOT NULL,
+            EnemyClass    STRING,
+            ExtraItemPool STRING,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ItemBalance) REFERENCES Items(Balance),
             UNIQUE(ItemBalance, EnemyClass)
@@ -1055,6 +1069,12 @@ if __name__ == "__main__":
         """,
         (CRAZY_EARL_DOOR,),
     )
+    # Add the extra itempool filters
+    for enemy_cls, item_pool in ENEMY_EXTRA_ITEM_POOL_FILTERS:
+        cur.execute(
+            "UPDATE Drops SET ExtraItemPool = ? WHERE EnemyClass = ?",
+            (item_pool, enemy_cls),
+        )
     # Duplicate the cartel minibosses
     for existing, duplicate in CARTEL_DUPLICATE_MINIBOSSES:
         cur.execute(
@@ -1096,14 +1116,13 @@ if __name__ == "__main__":
             """,
             (item, enemy_class),
         )
-
+    # Add all the items which only world drop
     cur.execute(
         """
         INSERT INTO
-            Drops (ItemBalance, EnemyClass)
+            Drops (ItemBalance)
         SELECT
-            i.ObjectName,
-            NULL
+            i.ObjectName
         FROM
             uniques.Sources as s
         INNER JOIN

@@ -98,6 +98,8 @@ def drop_hook(
         if not cur.fetchone()[0]:
             return
 
+        # Check if this is a word drop - doing this as an extra step beforehand since it avoids
+        # needing to iterate through the drop requests
         cur.execute(
             """
             SELECT EXISTS (
@@ -119,12 +121,17 @@ def drop_hook(
 
     # Try find the request this item is for
     for request in ENGINE.GameInstance.OakSingletons.SpawnLootManager.DroppedPickupRequests:
-        if request.ContextActor.Class is None:
+        actor = request.ContextActor
+        if actor is None or actor.Class is None:
             continue
         if not any(info.InventoryBalanceData == balance for info in request.SelectedInventoryInfos):
             continue
 
-        actor_cls = request.ContextActor.Class._path_name()
+        bal_comp = actor.BalanceComponent
+        extra_item_pool = None if bal_comp is None else bal_comp.ExtraItemPoolToDropOnDeath
+        extra_item_pool_name = None if extra_item_pool is None else extra_item_pool._path_name()
+
+        actor_cls = actor.Class._path_name()
         with open_db("r") as cur:
             cur.execute(
                 """
@@ -136,9 +143,13 @@ def drop_hook(
                     WHERE
                         ItemBalance = ?
                         and EnemyClass = ?
+                        and (
+                            ExtraItemPool IS NULL
+                            or ExtraItemPool = ?
+                        )
                 )
                 """,
-                (balance_name, actor_cls),
+                (balance_name, actor_cls, extra_item_pool_name),
             )
             # If we found a row, it's a valid drop
             if cur.fetchone()[0]:
