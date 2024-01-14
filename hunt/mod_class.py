@@ -183,12 +183,11 @@ class HuntTracker(Mod):
 
             yield ButtonOption(
                 "Open Rules",
-                on_press=lambda _: os.startfile("https://pastebin.com/NQ9YR5ZS"),  # type: ignore  # noqa: S606
+                on_press=lambda _: os.startfile("https://apple1417.dev/bl3/hunt"),  # type: ignore  # noqa: S606
                 description=(
-                    "Open the rules in your browser.\n"
+                    "<font size='40' color='#FFFFFF'>https://apple1417.dev/bl3/hunt</font>\n"
                     "\n"
-                    "If pressing the button does nothing, you can view them at:\n"
-                    "<font size='40' color='#FFFFFF'>https://pastebin.com/NQ9YR5ZS</font>"
+                    "Or press this button to open in your browser."
                 ),
             )
             yield reset_playthrough_button

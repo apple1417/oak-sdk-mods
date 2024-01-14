@@ -8,7 +8,7 @@ from typing import Literal
 from mods_base import SETTINGS_DIR, open_in_mod_dir
 
 DB_PATH = SETTINGS_DIR / "hunt.sqlite3"
-DB_TEMPLATE_PATH = Path(__file__).parent / "generate_db" / "hunt.sqlite3"
+DB_TEMPLATE_PATH = Path(__file__).parent / "hunt.sqlite3.template"
 
 
 @contextmanager
