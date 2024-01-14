@@ -52,10 +52,16 @@ def iter_mod_files(mod_folder: Path, debug: bool) -> Iterator[Path]:
     Yields:
         Valid files to export.
     """
-    for file in mod_folder.glob("**/*"):
-        if not file.is_file():
-            continue
-        if file.parent.name == "__pycache__":
+
+    # Obey .gitignore rules
+    for filename in subprocess.run(
+        ["git", "ls-files", mod_folder],
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding="utf8",
+    ).stdout.splitlines():
+        file = Path(filename).resolve()
+        if not file.exists() or not file.is_file():
             continue
 
         if file.suffix == ".cpp":
