@@ -1024,9 +1024,9 @@ if __name__ == "__main__":
         """
         CREATE TABLE Drops (
             ID            INTEGER NOT NULL UNIQUE,
-            ItemBalance   STRING NOT NULL,
-            EnemyClass    STRING,
-            ExtraItemPool STRING,
+            ItemBalance   TEXT NOT NULL,
+            EnemyClass    TEXT,
+            ExtraItemPool TEXT,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ItemBalance) REFERENCES Items(Balance),
             UNIQUE(ItemBalance, EnemyClass)
@@ -1390,9 +1390,9 @@ if __name__ == "__main__":
         """
         CREATE TABLE MissionTokens (
             ID               INTEGER NOT NULL UNIQUE,
-            MissionClass     STRING NOT NULL UNIQUE,
-            InitialTokens    INTEGER,
-            SubsequentTokens INTEGER,
+            MissionClass     TEXT NOT NULL UNIQUE,
+            InitialTokens    INTEGER NOT NULL,
+            SubsequentTokens INTEGER NOT NULL,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
         """,
@@ -1440,10 +1440,10 @@ if __name__ == "__main__":
     cur.execute(
         """
         CREATE TABLE SaveQuits (
-            ID       INTEGER NOT NULL UNIQUE,
-            Map      TEXT NOT NULL,
-            Station  TEXT NOT NULL,
-            QuitTime TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            ID        INTEGER NOT NULL UNIQUE,
+            WorldName TEXT NOT NULL,
+            Station   TEXT NOT NULL,
+            QuitTime  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
         """,

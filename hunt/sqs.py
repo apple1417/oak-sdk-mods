@@ -30,7 +30,7 @@ def sq_hook(
         cur.execute(
             """
             INSERT INTO
-                SaveQuits (Map, Station)
+                SaveQuits (WorldName, Station)
             VALUES
                 (?, ?)
             """,
