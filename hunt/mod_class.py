@@ -173,11 +173,6 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
 @dataclass
 class HuntTracker(Mod):
     def iter_display_options(self) -> Iterator[BaseOption]:  # noqa: D102
-        for option in super().iter_display_options():
-            if isinstance(option, GroupedOption) and option.identifier == "Options":
-                break
-            yield option
-
         try:
             create_item_option.cache_clear()
 
