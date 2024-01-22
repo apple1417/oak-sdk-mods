@@ -15,6 +15,7 @@ from mods_base import (
 
 from .db import open_db, reset_db
 from .db_options import MapOption, PlanetOption, create_item_option
+from .osd import osd_option
 from .tokens import redeem_token_option
 
 
@@ -95,6 +96,7 @@ def gen_progression_options() -> Iterator[BaseOption]:
                 "You can expect a full clear to take in the ballpark of 2000."
             ),
         )
+        yield osd_option
 
 
 def gen_token_options() -> Iterator[BaseOption]:
