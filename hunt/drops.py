@@ -60,6 +60,37 @@ INVENTORY_CATEGORIES_TO_IGNORE: set[UObject] = {
 PICKUP_CATEGORY_PROP = unrealsdk.find_class("InventoryItemPickup")._find("PickupCategory")
 
 
+def find_matching_drop_request(balance: UObject) -> tuple[UObject, str | None] | tuple[None, None]:
+    """
+    Tries to find the matching drop request for the given balance.
+
+    Args:
+        balance: The balance of the item to find the drop request of.
+    Returns:
+        A tuple of the actor and it's extra itempool, if one was found, or a tuple of two Nones.
+    """
+    for request in ENGINE.GameInstance.OakSingletons.SpawnLootManager.DroppedPickupRequests:
+        actor = request.ContextActor
+        if actor is None or actor.Class is None:
+            continue
+        if not any(info.InventoryBalanceData == balance for info in request.SelectedInventoryInfos):
+            continue
+
+        try:
+            bal_comp = actor.BalanceComponent
+        except AttributeError:
+            continue
+
+        try:
+            extra_item_pool = None if bal_comp is None else bal_comp.ExtraItemPoolToDropOnDeath
+            extra_item_pool_name = None if extra_item_pool is None else extra_item_pool._path_name()
+        except AttributeError:
+            extra_item_pool_name = None
+
+        return actor, extra_item_pool_name
+    return None, None
+
+
 @hook(
     "/Game/Pickups/_Shared/_Design/BP_OakInventoryItemPickup.BP_OakInventoryItemPickup_C:UserConstructionScript",
 )
@@ -119,43 +150,34 @@ def drop_hook(
             valid_pickups.add(obj)
             return
 
-    # Try find the request this item is for
-    for request in ENGINE.GameInstance.OakSingletons.SpawnLootManager.DroppedPickupRequests:
-        actor = request.ContextActor
-        if actor is None or actor.Class is None:
-            continue
-        if not any(info.InventoryBalanceData == balance for info in request.SelectedInventoryInfos):
-            continue
-
-        bal_comp = actor.BalanceComponent
-        extra_item_pool = None if bal_comp is None else bal_comp.ExtraItemPoolToDropOnDeath
-        extra_item_pool_name = None if extra_item_pool is None else extra_item_pool._path_name()
+        # Try find the request this item is for
+        actor, extra_item_pool_name = find_matching_drop_request(balance)
+        if actor is None:
+            return
 
         actor_cls = actor.Class._path_name()
-        with open_db("r") as cur:
-            cur.execute(
-                """
-                SELECT EXISTS (
-                    SELECT
-                        1
-                    FROM
-                        Drops
-                    WHERE
-                        ItemBalance = ?
-                        and EnemyClass = ?
-                        and (
-                            ExtraItemPool IS NULL
-                            or ExtraItemPool = ?
-                        )
-                )
-                """,
-                (balance_name, actor_cls, extra_item_pool_name),
+        cur.execute(
+            """
+            SELECT EXISTS (
+                SELECT
+                    1
+                FROM
+                    Drops
+                WHERE
+                    ItemBalance = ?
+                    and EnemyClass = ?
+                    and (
+                        ExtraItemPool IS NULL
+                        or ExtraItemPool = ?
+                    )
             )
-            # If we found a row, it's a valid drop
-            if cur.fetchone()[0]:
-                valid_pickups.add(obj)
-                return
-        break
+            """,
+            (balance_name, actor_cls, extra_item_pool_name),
+        )
+        # If we found a row, it's a valid drop
+        if cur.fetchone()[0]:
+            valid_pickups.add(obj)
+            return
 
 
 @hook("/Script/GbxInventory.InventoryItemPickup:OnLookedAtByPlayer")
