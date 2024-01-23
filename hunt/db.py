@@ -37,6 +37,8 @@ def open_db(mode: Literal["r", "w"]) -> Iterator[sqlite3.Cursor]:
         finally:
             cur.close()
 
+        _on_write_callbacks()
+
     else:
         yield con.cursor()
 
@@ -56,3 +58,10 @@ def reset_db() -> None:
                 ("StartTime", datetime())
             """,
         )
+
+
+from .osd import update_osd  # noqa: E402
+
+
+def _on_write_callbacks() -> None:
+    update_osd()
