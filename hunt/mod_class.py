@@ -10,6 +10,7 @@ from mods_base import (
     ButtonOption,
     GroupedOption,
     Mod,
+    NestedOption,
     SliderOption,
 )
 
@@ -60,8 +61,7 @@ def gen_progression_options() -> Iterator[BaseOption]:
                 format("Items: %d/%d", CollectedCount, TotalCount),
                 100.0 * CollectedCount / TotalCount,
                 format("Points: %d/%d", CollectedPoints, TotalPoints),
-                100.0 * CollectedPoints / TotalPoints,
-                format("Total Save Quits: %d", (SELECT COUNT(*) FROM SaveQuits))
+                100.0 * CollectedPoints / TotalPoints
             FROM (
                 SELECT
                     COUNT(*) FILTER (WHERE NumCollected > 0) as CollectedCount,
@@ -73,7 +73,7 @@ def gen_progression_options() -> Iterator[BaseOption]:
             )
             """,
         )
-        item_name, item_percent, points_name, points_percent, save_quits_name = cur.fetchone()
+        item_name, item_percent, points_name, points_percent = cur.fetchone()
 
         for name, percent in ((item_name, item_percent), (points_name, points_percent)):
             yield SliderOption(
@@ -86,17 +86,17 @@ def gen_progression_options() -> Iterator[BaseOption]:
                     " doesn't actually finish the challenge for you."
                 ),
             )
-        yield ButtonOption(
-            save_quits_name,
+
+        yield NestedOption(
+            "On Screen Display",
+            (osd_option,),
             description=(
-                "The total number of save quits you've done with the tracker active since last"
-                " resetting playthrough. Counts clicks of the SQ buttons, so won't trigger on"
-                " crashes.\n"
+                "Settings to help display these, and various other interesting stats, on screen.\n"
                 "\n"
-                "You can expect a full clear to take in the ballpark of 2000."
+                "Supports both displaying in-game, or exporting to a text file for more advanced"
+                " customization in OBS."
             ),
         )
-        yield osd_option
 
 
 def gen_token_options() -> Iterator[BaseOption]:
