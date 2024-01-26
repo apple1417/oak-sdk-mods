@@ -8,10 +8,13 @@ from threading import Thread
 from typing import Any, Self
 
 import unrealsdk
-from mods_base import BoolOption, GroupedOption, HookProtocol, hook
+from mods_base import SETTINGS_DIR, BoolOption, GroupedOption, HookProtocol, hook
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .db import open_db
+
+OUTPUT_TEXT_FILE = SETTINGS_DIR / "hunt_osd.txt"
+TEMPLATE_TEXT_FILE = SETTINGS_DIR / "hunt_osd.template.txt"
 
 
 def on_hunt_stat_change(option: BoolOption, new_value: bool) -> None:
@@ -41,15 +44,27 @@ class HuntStat(BoolOption):
 
 ALL_STATS: tuple[HuntStat, ...] = (
     HuntStat(
-        "Total Items",
+        "Items",
         True,
         description="Show the number of unique items you've collected.",
-        format_id="total_items",
+        format_id="num_items",
         sql="""
             SELECT
                 COUNT(*) FILTER (WHERE NumCollected > 0)
             FROM
                 CollectedItems
+            """,
+    ),
+    HuntStat(
+        "Total Items",
+        True,
+        description="Show the total number of available items.",
+        format_id="total_items",
+        sql="""
+            SELECT
+                COUNT(*)
+            FROM
+                Items
             """,
     ),
     HuntStat(
@@ -71,15 +86,27 @@ ALL_STATS: tuple[HuntStat, ...] = (
             """,
     ),
     HuntStat(
-        "Total Points",
+        "Points",
         False,
         description="Show the total point value of the items you've collected.",
-        format_id="total_points",
+        format_id="num_points",
         sql="""
             SELECT
                 IFNULL(SUM(Points) FILTER (WHERE NumCollected > 0), 0)
             FROM
                 CollectedItems
+            """,
+    ),
+    HuntStat(
+        "Total Points",
+        True,
+        description="Show the total number of available points.",
+        format_id="total_points",
+        sql="""
+            SELECT
+                SUM(Points)
+            FROM
+                Items
             """,
     ),
     HuntStat(
@@ -247,7 +274,7 @@ ALL_STATS: tuple[HuntStat, ...] = (
     ),
 )
 
-osd_option = GroupedOption("On Screen Display", children=ALL_STATS, display_name="Show In Game")
+osd_option = GroupedOption("On Screen Display", ALL_STATS, display_name="In Game")
 
 STAT_BY_FORMAT_ID: dict[str, HuntStat] = {stat.format_id: stat for stat in ALL_STATS}
 FORMATTER = string.Formatter()
@@ -257,7 +284,7 @@ def format_stats(format_string: str) -> str:
     """
     Formats a string using the various hunt stats.
 
-    Ags:
+    Args:
         format_string: The string to format.
     Returns:
         The formatted string.
@@ -275,6 +302,27 @@ def format_stats(format_string: str) -> str:
             kwargs[format_id] = cur.fetchone()[0]
 
     return format_string.format(**kwargs)
+
+
+def create_template_file() -> None:
+    """Creates the template text file."""
+    with TEMPLATE_TEXT_FILE.open("w") as file:
+        file.write(
+            "This file is the template for the on screen display text file. You can edit it\n"
+            "to completely customize the output.\n"
+            "\n"
+            "The following patterns will be substituted:\n",
+        )
+
+        for stat in ALL_STATS:
+            file.write(stat.in_game_format)
+            file.write("\n")
+
+        file.write(
+            "\n"
+            "These use standard Python string formatting.\n"
+            "https://docs.python.org/3/library/string.html#formatstrings\n",
+        )
 
 
 WHITE = unrealsdk.make_struct("LinearColor", R=1, G=1, B=1, A=1)
@@ -307,8 +355,17 @@ def _update_osd_inner() -> None:
     # Can't put this any higher due to circular imports
     from . import mod
 
+    if not mod.is_enabled:
+        return
+
+    if not TEMPLATE_TEXT_FILE.exists():
+        create_template_file()
+
+    with TEMPLATE_TEXT_FILE.open("r") as template, OUTPUT_TEXT_FILE.open("w") as out:
+        out.write(format_stats(template.read()))
+
     # If nothing to draw
-    if not mod.is_enabled or not any(stat.value for stat in ALL_STATS):
+    if not any(stat.value for stat in ALL_STATS):
         if draw_osd_hook is not None:
             draw_osd_hook.disable()
             draw_osd_hook = None

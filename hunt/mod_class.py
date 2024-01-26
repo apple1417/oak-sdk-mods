@@ -16,7 +16,7 @@ from mods_base import (
 
 from .db import open_db, reset_db
 from .db_options import MapOption, PlanetOption, create_item_option
-from .osd import osd_option
+from .osd import OUTPUT_TEXT_FILE, TEMPLATE_TEXT_FILE, osd_option, update_osd
 from .tokens import redeem_token_option
 
 
@@ -89,7 +89,32 @@ def gen_progression_options() -> Iterator[BaseOption]:
 
         yield NestedOption(
             "On Screen Display",
-            (osd_option,),
+            (
+                ButtonOption(
+                    "Update Now",
+                    description="Forces the displays to update now.",
+                    on_press=lambda _: update_osd(),
+                ),
+                GroupedOption(
+                    "External Text File",
+                    (
+                        ButtonOption(
+                            "Open Template File",
+                            description=(
+                                "Opens the template file, which you can edit to fully customize the"
+                                " display."
+                            ),
+                            on_press=lambda _: os.startfile(TEMPLATE_TEXT_FILE),  # type: ignore  # noqa: S606
+                        ),
+                        ButtonOption(
+                            "Open Output File",
+                            description="Opens the output file, which you should point OBS at.",
+                            on_press=lambda _: os.startfile(OUTPUT_TEXT_FILE),  # type: ignore  # noqa: S606
+                        ),
+                    ),
+                ),
+                osd_option,
+            ),
             description=(
                 "Settings to help display these, and various other interesting stats, on screen.\n"
                 "\n"
