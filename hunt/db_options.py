@@ -24,10 +24,11 @@ def create_item_option(item_id: int) -> BaseOption:
             """
             SELECT
                 format(
-                    '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18"/>  %s',
+                    '<img src="img://Game/UI/Menus/Debug/%s" width="18" height="18" alt="%s"/>  %s',
                     IIF(NumCollected <= 0,
                         'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked',
                         'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked'),
+                    IIF(NumCollected <= 0, '[  ]', '[x]'),
                     Name
                 ),
                 Name,
@@ -102,7 +103,9 @@ class MapOption(NestedOption):
                                             || IIF(c.NumCollected > 0,
                                                     'T_HUD_MissionTrackerBoxChecked.T_HUD_MissionTrackerBoxChecked',
                                                     'T_HUD_MissionTrackerBoxUnchecked.T_HUD_MissionTrackerBoxUnchecked')
-                                            || '" width="18" height="18"/>  '
+                                            || '" width="18" height="18" alt="'
+                                            || IIF(c.NumCollected > 0, '[x]', '[  ]')
+                                            || '"/>  '
                                             || i.Name
                                         ) as Summary
                                     FROM
