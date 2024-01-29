@@ -356,6 +356,9 @@ def _update_osd_inner() -> None:
     from . import mod
 
     if not mod.is_enabled:
+        if draw_osd_hook is not None:
+            draw_osd_hook.disable()
+            draw_osd_hook = None
         return
 
     if not TEMPLATE_TEXT_FILE.exists():
