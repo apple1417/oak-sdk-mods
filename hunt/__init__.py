@@ -1,7 +1,10 @@
 # ruff: noqa: D103
 
 if True:
-    assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
+    assert __import__("mods_base").__version_info__ >= (1, 1), "Please update the SDK"
+    assert __import__("bl3_mod_menu").__version_info__ >= (1, 0), "Please update the SDK"
+    assert __import__("pyunrealsdk").__version_info__ >= (1, 1, 0), "Please update the SDK"
+    assert __import__("ui_utils").__version_info__ >= (1, 0), "Please update the SDK"
 
 from mods_base import build_mod
 
