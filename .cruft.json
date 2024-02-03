@@ -1,6 +1,6 @@
 {
   "template": "git@github.com:bl-sdk/common_dotfiles.git",
-  "commit": "a66f9767ed477bfa89d6ca505392d226ebdd4275",
+  "commit": "57d16dc4c4604beb228e8c04c31fb010954eb466",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -13,7 +13,7 @@
       ],
       "project_name": "oak-sdk-mods",
       "__project_slug": "oak_sdk_mods",
-      "include_cpp": false,
+      "include_cpp": true,
       "include_py": true,
       "_template": "git@github.com:bl-sdk/common_dotfiles.git"
     }

@@ -1,12 +1,76 @@
 #!/usr/bin/env python3
+import re
 import shutil
 import subprocess
+import sys
 import tomllib
 from argparse import ArgumentParser, ArgumentTypeError
 from collections.abc import Iterator
 from functools import cache
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
+
+DOWNLOAD_PY_SCRIPT = (
+    Path(__file__).parent
+    / ".libs"
+    / "pyunrealsdk"
+    / "common_cmake"
+    / "explicit_python"
+    / "download.py"
+)
+CMAKE_LIST_PRESETS_RE = re.compile('  "(.+)"')
+CMAKE_BUILD_DIR_BASE = Path(".out") / "build"
+
+
+def download_py_libs(version: str) -> None:
+    """
+    Downloads the python libs for the given version.
+
+    Args:
+        version: The version to download.
+    """
+    subprocess.check_call([sys.executable, str(DOWNLOAD_PY_SCRIPT), version, "amd64"])
+
+
+@cache
+def cmake_get_presets() -> list[str]:
+    """
+    Gets the presets which may be used.
+
+    Returns:
+        A list of presets.
+    """
+    try:
+        proc = subprocess.run(
+            ["cmake", "--list-presets"],
+            check=True,
+            stdout=subprocess.PIPE,
+            encoding="utf8",
+        )
+    except FileNotFoundError:
+        return []
+    return CMAKE_LIST_PRESETS_RE.findall(proc.stdout)
+
+
+def cmake_configure(preset: str, extra_args: list[str]) -> None:
+    """
+    Configures the given CMake preset.
+
+    Args:
+        preset: The preset to configure.
+        extra_args: Extra CMake args to append to the configure command.
+    """
+    subprocess.check_call(["cmake", ".", "--preset", preset, *extra_args])
+
+
+def cmake_install(build_dir: Path) -> None:
+    """
+    Builds and installs a CMake configuration.
+
+    Args:
+        build_dir: The preset's build dir.
+    """
+    subprocess.check_call(["cmake", "--build", build_dir, "--target", "install"])
 
 
 @cache
@@ -52,10 +116,16 @@ def iter_mod_files(mod_folder: Path, debug: bool) -> Iterator[Path]:
     Yields:
         Valid files to export.
     """
-    for file in mod_folder.glob("**/*"):
-        if not file.is_file():
-            continue
-        if file.parent.name == "__pycache__":
+
+    # Obey .gitignore rules
+    for filename in subprocess.run(
+        ["git", "ls-files", mod_folder],
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding="utf8",
+    ).stdout.splitlines():
+        file = Path(filename).resolve()
+        if not file.exists() or not file.is_file():
             continue
 
         if file.suffix == ".cpp":
@@ -140,7 +210,63 @@ if __name__ == "__main__":
         type=dir_path_arg,
         help="The mod folders to zip. Leave empty to try all.",
     )
+
+    group = parser.add_argument_group(
+        "cmake options",
+        description="CMake helpers to run before preparing the release.",
+    )
+    group.add_argument(
+        "--download-py",
+        metavar="VERSION",
+        help="Download the python libraries at the given version before configuring.",
+    )
+    group.add_argument(
+        "--preset",
+        choices=cmake_get_presets(),
+        metavar="PRESET",
+        help="The preset to use.",
+    )
+    group.add_argument(
+        "--list-presets",
+        action="store_true",
+        help="List available presets.",
+    )
+    group.add_argument(
+        "--configure",
+        action="store_true",
+        help="Configure CMake before building. Requires '--preset' be given.",
+    )
+    group.add_argument(
+        "-C",
+        "--configure-extra-args",
+        action="append",
+        default=[],
+        metavar="...",
+        help="Extra args to append to the CMake configure call.",
+    )
+    group.add_argument(
+        "--build",
+        action="store_true",
+        help="Builds the native modules. Requires '--preset' be given.",
+    )
+
     args = parser.parse_args()
+
+    if args.list_presets:
+        print("Available presets:")
+        print()
+        for preset in cmake_get_presets():
+            print(f'  "{preset}"')
+        sys.exit(0)
+
+    if args.download_py:
+        download_py_libs(args.download_py)
+
+    if args.preset:
+        if args.configure:
+            cmake_configure(args.preset, args.configure_extra_args)
+        if args.build:
+            cmake_install(CMAKE_BUILD_DIR_BASE / args.preset)
 
     for mod_folder in args.folders or (x for x in Path(__file__).parent.iterdir() if x.is_dir()):
         if mod_folder.name.startswith("."):
