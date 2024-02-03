@@ -295,7 +295,7 @@ def format_stats(format_string: str) -> str:
         for _, format_id, _, _ in FORMATTER.parse(format_string):
             if format_id is None:
                 continue
-            stat = STAT_BY_FORMAT_ID.get(format_id, None)
+            stat = STAT_BY_FORMAT_ID.get(format_id)
             if stat is None:
                 continue
             cur.execute(stat.sql)
