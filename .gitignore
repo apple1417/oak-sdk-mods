@@ -4,7 +4,7 @@
 # C/C++ excludes
 .cache/clangd
 .gdbinit
-out
+.out
 
 # User scripts with templates
 postbuild
@@ -25,5 +25,6 @@ _deps
 CMakeUserPresets.json
 __pycache__
 
+*.pyd
 *.sdkmod
 *.zip
