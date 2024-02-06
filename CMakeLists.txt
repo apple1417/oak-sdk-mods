@@ -6,6 +6,8 @@ set(UNREALSDK_ARCH "x64")
 set(UNREALSDK_UE_VERSION "UE4")
 add_subdirectory(.libs/pyunrealsdk EXCLUDE_FROM_ALL)
 
+include(sqlite3.cmake)
+
 file(GLOB_RECURSE subfolders RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*/CMakeLists.txt")
 foreach(cmakelists ${subfolders})
     if (${cmakelists} MATCHES "^\\.")

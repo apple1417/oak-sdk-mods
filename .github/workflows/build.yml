@@ -273,8 +273,6 @@ jobs:
     - name: Run clang-tidy
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: |
-        echo $([Regex]::Escape("$pwd\") + "[^.].+\.(c|cpp|h|hpp)$")
-
         python (Get-Command run-clang-tidy).Source                              `
           -j ${{ env.CLANG_TIDY_JOBS }}                                         `
           -p ".out\build\${{ matrix.preset }}"                                  `
