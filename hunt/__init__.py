@@ -10,7 +10,7 @@ from mods_base import build_mod
 
 from .drops import drop_hook, itemcard_hook, world_change_hook
 from .mod_class import HuntTracker
-from .osd import osd_option, update_osd
+from .osd import osd_option
 from .sqs import sq_hook
 from .tokens import (
     item_inspect_end_hook,
@@ -38,19 +38,3 @@ mod = build_mod(
         osd_option,
     ],
 )
-
-
-# To avoid circular imports, only define these after build mod
-# This is because calling `update_osd`` imports mod from above
-def on_enable() -> None:
-    update_osd()
-
-
-def on_disable() -> None:
-    update_osd()
-
-
-mod.on_enable = on_enable
-mod.on_disable = on_disable
-
-update_osd()

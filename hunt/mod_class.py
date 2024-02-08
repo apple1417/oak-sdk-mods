@@ -199,6 +199,18 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
 
 @dataclass
 class HuntTracker(Mod):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        update_osd()
+
+    def enable(self) -> None:  # noqa: D102
+        super().enable()
+        update_osd()
+
+    def disable(self, dont_update_setting: bool = False) -> None:  # noqa: D102
+        super().disable(dont_update_setting)
+        update_osd()
+
     def iter_display_options(self) -> Iterator[BaseOption]:  # noqa: D102
         try:
             create_item_option.cache_clear()
