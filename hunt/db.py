@@ -7,6 +7,8 @@ from typing import Literal
 
 from mods_base import SETTINGS_DIR, open_in_mod_dir
 
+from .native import drops
+
 DB_PATH = SETTINGS_DIR / "hunt.sqlite3"
 DB_TEMPLATE_PATH = Path(__file__).parent / "hunt.sqlite3.template"
 
@@ -40,11 +42,16 @@ def open_db(mode: Literal["r", "w"]) -> Iterator[sqlite3.Cursor]:
         _on_write_callbacks()
 
     else:
-        yield con.cursor()
+        cur = con.cursor()
+        yield cur
+        cur.close()
+
+    con.close()
 
 
 def reset_db() -> None:
     """Resets the db back to default."""
+    drops.close_db()
     DB_PATH.unlink(missing_ok=True)
     with open_in_mod_dir(DB_TEMPLATE_PATH, binary=True) as template, DB_PATH.open("wb") as db:
         shutil.copyfileobj(template, db)
@@ -58,6 +65,13 @@ def reset_db() -> None:
                 ("StartTime", datetime())
             """,
         )
+
+
+@drops.set_db_getter
+def native_db_getter() -> str:  # noqa: D103
+    if not DB_PATH.exists():
+        reset_db()
+    return str(DB_PATH)
 
 
 from .osd import update_osd  # noqa: E402
