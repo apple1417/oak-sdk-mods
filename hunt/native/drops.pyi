@@ -17,6 +17,19 @@ def set_db_getter(getter: Callable[[], str]) -> Callable[[], str]:
         The passed getter, so that this may be used as a decorator.
     """
 
+def set_drop_callback(callback: Callable[[str], None]) -> Callable[[str], None]:
+    """
+    Sets the callback run when a valid drop is collected.
+
+    This callback takes a single arg, the balance name of the item which was
+    collected. The return value is ignored.
+
+    Args:
+        callback: The callback to set.
+    Returns:
+        The passed callback, so that this may be used as a decorator.
+    """
+
 def close_db() -> None:
     """
     Closes the db connection, to allow the file to be replaced.
@@ -33,3 +46,9 @@ def get_inventory_balance_name(bal_comp: InventoryBalanceStateComponent) -> str:
     Return:
         The inventory balance's name.
     """
+
+def enable() -> None:
+    """Enables the drop detection hooks."""
+
+def disable() -> None:
+    """Disables the drop detection hooks."""

@@ -4,6 +4,7 @@
 #include "unrealsdk/unreal/classes/uobject.h"
 
 #include "balance.h"
+#include "hooks.h"
 #include "sql.h"
 
 using namespace unrealsdk::unreal;
@@ -27,6 +28,23 @@ PYBIND11_MODULE(drops, m) {
         "    The passed getter, so that this may be used as a decorator.",
         "getter"_a);
 
+    m.def(
+        "set_drop_callback",
+        [](const py::object& callback) {
+            hunt::drops::set_drop_callback({callback});
+            return callback;
+        },
+        "Sets the callback run when a valid drop is collected.\n"
+        "\n"
+        "This callback takes a single arg, the balance name of the item which was\n"
+        "collected. The return value is ignored.\n"
+        "\n"
+        "Args:\n"
+        "    callback: The callback to set.\n"
+        "Returns:\n"
+        "    The passed callback, so that this may be used as a decorator.",
+        "callback"_a);
+
     m.def("close_db", hunt::sql::close_db,
           "Closes the db connection, to allow the file to be replaced.\n"
           "\n"
@@ -45,4 +63,7 @@ PYBIND11_MODULE(drops, m) {
         "Return:\n"
         "    The inventory balance's name.",
         "bal_comp"_a);
+
+    m.def("enable", hunt::drops::enable, "Enables the drop detection hooks.");
+    m.def("disable", hunt::drops::enable, "Disables the drop detection hooks.");
 }

@@ -266,7 +266,7 @@ jobs:
           --configure -C-DCMAKE_DISABLE_PRECOMPILE_HEADERS=On
 
         (Get-Content ".out\build\${{ matrix.preset }}\compile_commands.json")   `
-          -replace "@CMakeFiles.+?\.modmap", ""                                 `
+          -replace "@\S+CMakeFiles\S+?\.modmap", ""                                 `
         | Set-Content                                                           `
           -Path ".out\build\${{ matrix.preset }}\compile_commands.json"
 

@@ -45,6 +45,11 @@ bool ensure_prepared(std::weak_ptr<sqlite3_stmt>& statement, std::string_view qu
             database = nullptr;
             return false;
         }
+
+        res = sqlite3_extended_result_codes(database, 1);
+        if (res != SQLITE_OK) {
+            LOG(DEV_WARNING, "Failed to enable extended error codes: {}", sqlite3_errmsg(database));
+        }
     }
 
     sqlite3_stmt* raw_statement = nullptr;

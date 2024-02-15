@@ -1,4 +1,4 @@
-#include "unrealsdk/format.h"
+#include "pyunrealsdk/pch.h"
 #include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
 #include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
@@ -43,7 +43,7 @@ ExpandableBalanceDataMap load_expandable_balance_data(void) {
         throw std::runtime_error("Failed to load expandable balance data!");
     }
 
-    std::shared_ptr<sqlite3_stmt> statement{load_statement};
+    const std::shared_ptr<sqlite3_stmt> statement{load_statement};
     sqlite3_reset(statement.get());
 
     ExpandableBalanceDataMap output{};
@@ -64,14 +64,15 @@ ExpandableBalanceDataMap load_expandable_balance_data(void) {
 
         auto root_bal_ptr =
             reinterpret_cast<const wchar_t*>(sqlite3_column_text16(statement.get(), 0));
-        size_t root_bal_size = sqlite3_column_bytes16(statement.get(), 0) / sizeof(wchar_t);
+        const size_t root_bal_size = sqlite3_column_bytes16(statement.get(), 0) / sizeof(wchar_t);
 
         auto part_ptr = reinterpret_cast<const wchar_t*>(sqlite3_column_text16(statement.get(), 1));
-        size_t part_size = sqlite3_column_bytes16(statement.get(), 1) / sizeof(wchar_t);
+        const size_t part_size = sqlite3_column_bytes16(statement.get(), 1) / sizeof(wchar_t);
 
         auto expanded_bal_ptr =
             reinterpret_cast<const wchar_t*>(sqlite3_column_text16(statement.get(), 2));
-        size_t expanded_bal_size = sqlite3_column_bytes16(statement.get(), 2) / sizeof(wchar_t);
+        const size_t expanded_bal_size =
+            sqlite3_column_bytes16(statement.get(), 2) / sizeof(wchar_t);
 
         auto root_obj =
             unrealsdk::find_object(L"InventoryBalanceData"_fn, {root_bal_ptr, root_bal_size});
