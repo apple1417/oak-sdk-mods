@@ -7,8 +7,8 @@ from mods_base import EInputEvent, KeybindOption, hook, raw_keybinds
 from ui_utils import show_hud_message
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .balance import get_inventory_balance_name
 from .db import open_db
+from .native.drops import get_inventory_balance_name
 
 redeem_token_option = KeybindOption(
     "Redeem Item",

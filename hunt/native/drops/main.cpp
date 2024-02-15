@@ -3,15 +3,10 @@
 #include "pyunrealsdk/type_casters.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 
+#include "balance.h"
 #include "sql.h"
 
 using namespace unrealsdk::unreal;
-
-namespace {
-
-sqlite3* database = nullptr;
-
-}
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(drops, m) {
@@ -37,28 +32,17 @@ PYBIND11_MODULE(drops, m) {
           "\n"
           "Note the connection will be re-opened the next time it's required.");
 
-    m.def("test", []() {
-        static const constexpr std::string_view count_query = "select count(*) from Items";
-        static std::weak_ptr<sqlite3_stmt> count_statement;
-
-        if (!hunt::sql::ensure_prepared(count_statement, count_query)) {
-            return -1;
-        }
-
-        std::shared_ptr<sqlite3_stmt> statement{count_statement};
-        sqlite3_reset(statement.get());
-
-        auto res = sqlite3_step(statement.get());
-        LOG(DEV_WARNING, "Statement result: {}", res);
-        if (res != SQLITE_OK && res != SQLITE_ROW && res != SQLITE_DONE) {
-            LOG(DEV_WARNING, "Failed to run statement: {}", sqlite3_errmsg(database));
-            return -1;
-        }
-        auto ret = sqlite3_column_int(statement.get(), 0);
-
-        res = sqlite3_step(statement.get());
-        LOG(DEV_WARNING, "Statement result: {}", res);
-
-        return ret;
-    });
+    m.def(
+        "get_inventory_balance_name",
+        [](const py::object& bal_comp) {
+            return hunt::balance::get_inventory_balance_name(
+                pyunrealsdk::type_casters::cast<UObject*>(bal_comp));
+        },
+        "Gets the name of this item's inventory balance.\n"
+        "\n"
+        "Args:\n"
+        "    bal_comp: The InventoryBalanceStateComponent to inspect.\n"
+        "Return:\n"
+        "    The inventory balance's name.",
+        "bal_comp"_a);
 }

@@ -8,8 +8,8 @@ from ui_utils import show_hud_message
 from unrealsdk import logging
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
-from .balance import get_inventory_balance_name
 from .db import open_db
+from .native.drops import get_inventory_balance_name
 
 """
 When an enemy dies, it's drops are added to `SpawnLootManager::DroppedPickupRequests`. This list
@@ -110,7 +110,7 @@ def drop_hook(
     if balance is None:
         return
 
-    balance_name = balance._path_name()
+    balance_name = get_inventory_balance_name(cached_bal_comp)
     with open_db("r") as cur:
         cur.execute(
             """
