@@ -22,6 +22,21 @@ Note anywhere the rest of the page mentions a "path name", that's excluding the 
 `/Game/Some/Object.Path`, not `Object'/Game/Some/Object.Path'`. Anywhere it mentions a "short name",
 it's just the name of the final object in the path - i.e. `Path`.
 
+## Multiple Connections
+TLDR: enable WAL when generating your template database: `PRAGMA journal_mode = WAL`.
+
+The tracker uses a native module to detect valid drops, as an optimization for cases like jackbot,
+who "drops" >600 items at once (all the money in the vault). This however means that the database
+may have multiple active connections from "different processes" - both the native module and
+Python's. This can cause freezes when the db is written to, if one connection blocks (on the main
+thread) until the other finishes it's transaction.
+
+The native module only ever does reads, in fact only opening the database in read-only mode, and
+only ever from the `Drops`, `ExpandableBalances`, and `Items` tables. This means simply enabling
+[Write-Ahead Logging](https://www.sqlite.org/wal.html) is enough, which prevents reads and writes
+from blocking each other. This is a feature of the database, not the connection, so must be set in
+your template file.
+
 ## Schema
 ![Schema](schema.png)
 
