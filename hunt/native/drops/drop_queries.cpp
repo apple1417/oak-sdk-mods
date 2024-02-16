@@ -104,11 +104,11 @@ bool is_valid_drop(std::wstring_view balance_name,
         return false;
     }
     if (extra_item_pool_name) {
-        if (!bind_str(*extra_item_pool_name, 2, "extra item pool")) {
+        if (!bind_str(*extra_item_pool_name, 3, "extra item pool")) {
             return false;
         }
     } else {
-        auto res = sqlite3_bind_null(statement.get(), 2);
+        auto res = sqlite3_bind_null(statement.get(), 3);
         if (res != SQLITE_OK) {
             // Note hardcoding the field in the hopes it gets inlined with the other call
             LOG(DEV_WARNING, "Failed to bind {} for 'is_valid_drop' query: {}", "extra item pool",

@@ -8,7 +8,6 @@ if True:
 
 from mods_base import build_mod
 
-from .drops import drop_hook, itemcard_hook, world_change_hook
 from .mod_class import HuntTracker
 from .osd import osd_option
 from .sqs import sq_hook
@@ -19,15 +18,16 @@ from .tokens import (
     redeem_token_option,
 )
 
+# isort: split
+# Import for side effects
+from . import drops  # noqa: F401 # noqa: F401  # pyright: ignore[reportUnusedImport]
+
 __version__: str
 __version_info__: tuple[int, ...]
 
 mod = build_mod(
     cls=HuntTracker,
     hooks=[
-        drop_hook,
-        itemcard_hook,
-        world_change_hook,
         mission_complete_hook,
         item_inspect_end_hook,
         item_inspect_start_hook,

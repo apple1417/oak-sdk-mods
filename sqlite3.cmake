@@ -27,3 +27,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Sqlite uses a few intrinsics which clang doesn't implement, but it compiles fine ignoring them
     target_compile_options(sqlite3 PRIVATE -Wno-ignored-pragma-intrinsic)
 endif()
+
+set_target_properties(sqlite3 PROPERTIES
+    DEBUG_POSTFIX "_d"
+)

@@ -28,10 +28,11 @@ std::optional<std::pair<UObject*, std::optional<std::wstring>>> find_matching_dr
 
     static const auto spawn_loot_manager_prop =
         oak_singletons->Class->find_prop_and_validate<UObjectProperty>(L"SpawnLootManager"_fn);
-    auto spawn_loot_manager = game_instance->get<UObjectProperty>(spawn_loot_manager_prop);
+    auto spawn_loot_manager = oak_singletons->get<UObjectProperty>(spawn_loot_manager_prop);
 
     static const auto dropped_pickup_requests_prop =
-        spawn_loot_manager->Class->find_prop_and_validate<UArrayProperty>(L"SpawnLootManager"_fn);
+        spawn_loot_manager->Class->find_prop_and_validate<UArrayProperty>(
+            L"DroppedPickupRequests"_fn);
     auto dropped_pickup_requests =
         spawn_loot_manager->get<UArrayProperty>(dropped_pickup_requests_prop);
 
