@@ -6,7 +6,7 @@ if True:
     assert __import__("pyunrealsdk").__version_info__ >= (1, 1, 0), "Please update the SDK"
     assert __import__("ui_utils").__version_info__ >= (1, 0), "Please update the SDK"
 
-from mods_base import build_mod
+from mods_base import SETTINGS_DIR, build_mod
 
 from .mod_class import HuntTracker
 from .osd import osd_option
@@ -27,6 +27,7 @@ __version_info__: tuple[int, ...]
 
 mod = build_mod(
     cls=HuntTracker,
+    settings_file=SETTINGS_DIR / "hunt" / "hunt.json",
     hooks=[
         mission_complete_hook,
         item_inspect_end_hook,

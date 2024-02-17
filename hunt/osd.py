@@ -11,8 +11,8 @@ from mods_base import SETTINGS_DIR, BoolOption, GroupedOption
 from .db import open_db
 from .native import osd
 
-OUTPUT_TEXT_FILE = SETTINGS_DIR / "hunt_osd.txt"
-TEMPLATE_TEXT_FILE = SETTINGS_DIR / "hunt_osd.template.txt"
+OUTPUT_TEXT_FILE = SETTINGS_DIR / "hunt" / "osd.txt"
+TEMPLATE_TEXT_FILE = SETTINGS_DIR / "hunt" / "osd.template.txt"
 
 
 def on_hunt_stat_change(option: BoolOption, new_value: bool) -> None:

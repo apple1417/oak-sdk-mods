@@ -9,7 +9,7 @@ from mods_base import SETTINGS_DIR, open_in_mod_dir
 
 from .native import drops
 
-DB_PATH = SETTINGS_DIR / "hunt.sqlite3"
+DB_PATH = SETTINGS_DIR / "hunt" / "hunt.sqlite3"
 DB_TEMPLATE_PATH = Path(__file__).parent / "hunt.sqlite3.template"
 
 
@@ -52,7 +52,11 @@ def open_db(mode: Literal["r", "w"]) -> Iterator[sqlite3.Cursor]:
 def reset_db() -> None:
     """Resets the db back to default."""
     drops.close_db()
-    DB_PATH.unlink(missing_ok=True)
+
+    # Try delete journal files as well
+    for file in DB_PATH.parent.glob(DB_PATH.name + "*"):
+        file.unlink()
+
     with open_in_mod_dir(DB_TEMPLATE_PATH, binary=True) as template, DB_PATH.open("wb") as db:
         shutil.copyfileobj(template, db)
 
