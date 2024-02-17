@@ -425,11 +425,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: nightly-test
+        tag_name: nightly
         files: |
           *.sdkmod
           *.zip
-        prerelease: true
         name: Automated Releases
+        prerelease: false
         body: >
           This release is automatically built from the latest (passing) commits on master.
