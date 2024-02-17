@@ -45,14 +45,34 @@ UFunction* draw_text_func =
 UFunction* draw_rect_func =
     validate_type<UFunction>(unrealsdk::find_object(L"Function", L"/Script/Engine.HUD:DrawRect"));
 
-WrappedStruct background_to_draw{draw_rect_func};
-std::vector<WrappedStruct> text_to_draw{};
+/*
+HACK: Since native Python modules stick around forever, the destructor on these gets called after
+      the engine has shut down, meaning the pointer to the struct type (or maybe some of it's
+      properties?) is invalid when these get destroyed.
+      Use a custom type to skip the destructor - this only happens on game quit so isn't really
+      a memory leak we care about.
+*/
+
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+union StaticStructs {
+   private:
+    struct Inner {
+        WrappedStruct background_to_draw{draw_rect_func};
+        std::vector<WrappedStruct> text_to_draw{};
+    } value{};
+
+   public:
+    ~StaticStructs() {}  // Deliberately empty + leaking
+
+    inline WrappedStruct& background_to_draw(void) { return value.background_to_draw; }
+    inline std::vector<WrappedStruct>& text_to_draw(void) { return value.text_to_draw; }
+} structs;
 
 bool draw_hud_hook(unrealsdk::hook_manager::Details& details) {
-    BoundFunction{draw_rect_func, details.obj}.call<void>(background_to_draw);
+    BoundFunction{draw_rect_func, details.obj}.call<void>(structs.background_to_draw());
 
     BoundFunction draw_text{draw_text_func, details.obj};
-    for (auto& text : text_to_draw) {
+    for (auto& text : structs.text_to_draw()) {
         draw_text.call<void>(text);
     }
     return false;
@@ -80,10 +100,10 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
 
     if (pending_lines_to_draw.empty()) {
         hide();
-        text_to_draw.clear();
+        structs.text_to_draw().clear();
         return false;
     }
-    text_to_draw.clear();
+    structs.text_to_draw().clear();
 
     BoundFunction get_text_size{get_text_size_func, details.obj};
     WrappedStruct args{get_text_size_func};
@@ -100,8 +120,8 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
         const float width = args.get<UFloatProperty>(L"OutWidth"_fn);
         const float height = args.get<UFloatProperty>(L"OutHeight"_fn);
 
-        text_to_draw.emplace_back(draw_text_func);
-        auto& text_args = text_to_draw.back();
+        structs.text_to_draw().emplace_back(draw_text_func);
+        auto& text_args = structs.text_to_draw().back();
 
         text_args.set<UStrProperty>(L"text"_fn, line);
         text_args.set<UFloatProperty>(L"ScreenX"_fn, OUTER_PADDING);
@@ -120,11 +140,11 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
     }
 
     // Add the outer padding for both sides
-    background_to_draw.set<UFloatProperty>(L"ScreenW"_fn, max_width + 2 * OUTER_PADDING);
+    structs.background_to_draw().set<UFloatProperty>(L"ScreenW"_fn, max_width + 2 * OUTER_PADDING);
     // Remove the inner padding from the bottom, and add the outer padding - we already started with
     // the outer padding at the top
-    background_to_draw.set<UFloatProperty>(L"ScreenH"_fn,
-                                           total_height - INTER_LINE_PADDING + OUTER_PADDING);
+    structs.background_to_draw().set<UFloatProperty>(
+        L"ScreenH"_fn, total_height - INTER_LINE_PADDING + OUTER_PADDING);
 
     pending_lines_to_draw.clear();
     if (show_after_update) {
@@ -135,18 +155,22 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
     return false;
 }
 
+const constexpr auto BACKGROUND_OPACITY = 0.5;
+
 };  // namespace
 
 // NOLINTNEXTLINE(readability-identifier-length)
 PYBIND11_MODULE(osd, m) {
     // We can leave all other background args as zero-init
     // NOLINTNEXTLINE(readability-magic-numbers)
-    background_to_draw.get<UStructProperty>(L"RectColor"_fn).set<UFloatProperty>(L"A"_fn, 0.5);
+    structs.background_to_draw()
+        .get<UStructProperty>(L"RectColor"_fn)
+        .set<UFloatProperty>(L"A"_fn, BACKGROUND_OPACITY);
 
     m.def(
         "show",
         []() {
-            if (text_to_draw.empty()) {
+            if (structs.text_to_draw().empty()) {
                 if (pending_lines_to_draw.empty()) {
                     hide();
                 } else {
@@ -166,7 +190,7 @@ PYBIND11_MODULE(osd, m) {
 
             if (pending_lines_to_draw.empty()) {
                 hide();
-                text_to_draw.clear();
+                structs.text_to_draw().clear();
             } else {
                 unrealsdk::hook_manager::add_hook(DRAW_HUD_FUNC_NAME,
                                                   unrealsdk::hook_manager::Type::PRE,
