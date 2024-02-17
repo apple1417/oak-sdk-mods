@@ -6,11 +6,10 @@ if True:
     assert __import__("pyunrealsdk").__version_info__ >= (1, 1, 0), "Please update the SDK"
     assert __import__("ui_utils").__version_info__ >= (1, 0), "Please update the SDK"
 
-from mods_base import build_mod
+from mods_base import SETTINGS_DIR, build_mod
 
-from .drops import drop_hook, itemcard_hook, world_change_hook
 from .mod_class import HuntTracker
-from .osd import osd_option, update_osd
+from .osd import osd_option
 from .sqs import sq_hook
 from .tokens import (
     item_inspect_end_hook,
@@ -19,15 +18,17 @@ from .tokens import (
     redeem_token_option,
 )
 
+# isort: split
+# Import for side effects
+from . import drops  # noqa: F401 # noqa: F401  # pyright: ignore[reportUnusedImport]
+
 __version__: str
 __version_info__: tuple[int, ...]
 
 mod = build_mod(
     cls=HuntTracker,
+    settings_file=SETTINGS_DIR / "hunt" / "hunt.json",
     hooks=[
-        drop_hook,
-        itemcard_hook,
-        world_change_hook,
         mission_complete_hook,
         item_inspect_end_hook,
         item_inspect_start_hook,
@@ -38,19 +39,3 @@ mod = build_mod(
         osd_option,
     ],
 )
-
-
-# To avoid circular imports, only define these after build mod
-# This is because calling `update_osd`` imports mod from above
-def on_enable() -> None:
-    update_osd()
-
-
-def on_disable() -> None:
-    update_osd()
-
-
-mod.on_enable = on_enable
-mod.on_disable = on_disable
-
-update_osd()

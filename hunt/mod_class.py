@@ -16,6 +16,7 @@ from mods_base import (
 
 from .db import open_db, reset_db
 from .db_options import MapOption, PlanetOption, create_item_option
+from .native import drops
 from .osd import OUTPUT_TEXT_FILE, TEMPLATE_TEXT_FILE, osd_option, update_osd
 from .tokens import redeem_token_option
 
@@ -199,6 +200,20 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
 
 @dataclass
 class HuntTracker(Mod):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        update_osd()
+
+    def enable(self) -> None:  # noqa: D102
+        super().enable()
+        update_osd()
+        drops.enable()
+
+    def disable(self, dont_update_setting: bool = False) -> None:  # noqa: D102
+        super().disable(dont_update_setting)
+        update_osd()
+        drops.disable()
+
     def iter_display_options(self) -> Iterator[BaseOption]:  # noqa: D102
         try:
             create_item_option.cache_clear()

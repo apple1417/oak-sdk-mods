@@ -675,6 +675,7 @@ def open_hunt_db() -> sqlite3.Connection:
     cur = con.cursor()
 
     cur.execute("PRAGMA foreign_keys = ON")
+    cur.execute("PRAGMA journal_mode = WAL")
     cur.execute("ATTACH DATABASE ? AS uniques", (f"file:{UNIQUES_DB}?mode=ro",))
 
     cur.execute("SELECT CAST(Value AS INT) FROM uniques.MetaData WHERE Key = 'Version'")

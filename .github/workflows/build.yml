@@ -266,15 +266,13 @@ jobs:
           --configure -C-DCMAKE_DISABLE_PRECOMPILE_HEADERS=On
 
         (Get-Content ".out\build\${{ matrix.preset }}\compile_commands.json")   `
-          -replace "@CMakeFiles.+?\.modmap", ""                                 `
+          -replace "@\S+CMakeFiles\S+?\.modmap", ""                                 `
         | Set-Content                                                           `
           -Path ".out\build\${{ matrix.preset }}\compile_commands.json"
 
     - name: Run clang-tidy
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: |
-        echo $([Regex]::Escape("$pwd\") + "[^.].+\.(c|cpp|h|hpp)$")
-
         python (Get-Command run-clang-tidy).Source                              `
           -j ${{ env.CLANG_TIDY_JOBS }}                                         `
           -p ".out\build\${{ matrix.preset }}"                                  `
