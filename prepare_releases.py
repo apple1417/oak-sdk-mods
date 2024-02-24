@@ -128,8 +128,15 @@ def iter_mod_files(mod_folder: Path, debug: bool) -> Iterator[Path]:
         if not file.exists() or not file.is_file():
             continue
 
-        if file.suffix == ".cpp":
+        if file.suffix in {".cpp", ".h", ".hpp"}:
             continue
+        if file.name in {"CMakeLists.txt"}:
+            continue
+
+        yield file
+
+    # Extra scan for `.pyd`s, which are gitignored
+    for file in mod_folder.glob("**/*.pyd"):
         if file.suffix == ".pyd" and file.stem.endswith("_d") != debug:
             continue
 
