@@ -67,7 +67,7 @@ bool may_balance_world_drop(std::wstring_view balance_name) {
 bool is_valid_drop(std::wstring_view balance_name,
                    std::wstring_view actor_cls,
                    std::optional<std::wstring_view> extra_item_pool_name) {
-    static const std::string_view query =
+    static const constinit std::string_view query =
         "SELECT EXISTS ("
         "SELECT 1 FROM Drops WHERE"
         " ItemBalance = ?"

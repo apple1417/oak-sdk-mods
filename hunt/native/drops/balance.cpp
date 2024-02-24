@@ -34,7 +34,7 @@ using ExpandableBalanceDataMap =
     std::unordered_map<InventoryBalanceData*, std::unordered_map<InventoryPartData*, std::wstring>>;
 
 ExpandableBalanceDataMap load_expandable_balance_data(void) {
-    static const constexpr std::string_view load_query =
+    static const constinit std::string_view load_query =
         "SELECT RootBalance, Part, ExpandedBalance FROM ExpandableBalances";
 
     // Not bothering with a static since this should only get called once
