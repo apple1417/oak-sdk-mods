@@ -53,6 +53,8 @@ def reset_db() -> None:
     """Resets the db back to default."""
     drops.close_db()
 
+    DB_PATH.parent.mkdir(exist_ok=True)
+
     # Try delete journal files as well
     for file in DB_PATH.parent.glob(DB_PATH.name + "*"):
         file.unlink()
