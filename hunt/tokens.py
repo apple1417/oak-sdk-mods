@@ -3,8 +3,9 @@
 from typing import Any
 
 from bl3_mod_menu import DialogBox, DialogBoxChoice
-from mods_base import EInputEvent, KeybindOption, hook, raw_keybinds
+from mods_base import EInputEvent, KeybindOption, hook, html_to_plain_text, raw_keybinds
 from ui_utils import show_hud_message
+from unrealsdk import logging
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .db import open_db
@@ -137,6 +138,45 @@ def mission_complete_hook(
     _3: Any,
     _4: BoundFunction,
 ) -> None:
+    mission_class = obj.Class._path_name()
+
+    with open_db("r") as cur:
+        cur.execute(
+            """
+            SELECT
+                'World Drop Token' || IIF(NumTokens > 1, 's', '') || ' Unlocked',
+                '<font color="#00ff00">+'
+                    || NumTokens
+                    || '</font> token'
+                    || IIF(NumTokens > 1, 's', ''),
+                5
+            FROM (
+                SELECT
+                    IIF((SELECT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                CompletedMissions as c
+                            WHERE
+                                c.MissionClass = ?
+                        )),
+                        t.SubsequentTokens,
+                        t.InitialTokens
+                    ) as NumTokens
+                FROM
+                    MissionTokens as t
+                WHERE
+                    t.MissionClass = ?
+            )
+            """,
+            (mission_class, mission_class),
+        )
+        row = cur.fetchone()
+        if row is not None:
+            title, message, duration = row
+            show_hud_message(title, message, duration)
+            logging.info(html_to_plain_text(f"[HUNT] {title}: {message}"))
+
     with open_db("w") as cur:
         cur.execute(
             """
@@ -145,5 +185,5 @@ def mission_complete_hook(
             VALUES
                 (?)
             """,
-            (obj.Class._path_name(),),
+            (mission_class,),
         )

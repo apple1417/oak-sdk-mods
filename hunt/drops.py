@@ -37,7 +37,10 @@ def on_valid_drop(bal_name: str) -> None:
                 ),
                 IIF(NumCollected > 1,
                     'Collected ' || NumCollected ||' times',
-                    '<font color="#00ff00">+' || Points || '</font> points'
+                    '<font color="#00ff00">+'
+                        || Points
+                        || '</font> point'
+                        || IIF(Points > 1, 's', '')
                 ),
                 IIF(NumCollected > 1,
                     4,
