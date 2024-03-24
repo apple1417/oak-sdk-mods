@@ -263,3 +263,35 @@ class PlanetOption(NestedOption):
                     description=traceback.format_exc(),
                 ),
             )
+
+
+@dataclass
+class FullItemListOption(NestedOption):
+    children: Sequence[BaseOption] = field(init=False, default_factory=tuple)  # type: ignore
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        del self.children
+
+    @cached_property
+    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+        try:
+            with open_db("r") as cur:
+                cur.execute(
+                    """
+                    SELECT
+                        ID
+                    FROM
+                        Items
+                    ORDER BY
+                        Name
+                    """,
+                )
+                return tuple(create_item_option(item_id) for (item_id,) in cur.fetchall())
+        except Exception:  # noqa: BLE001
+            return (
+                ButtonOption(
+                    "Failed to generate children!",
+                    description=traceback.format_exc(),
+                ),
+            )

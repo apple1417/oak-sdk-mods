@@ -251,7 +251,19 @@ class HuntTracker(Mod):
                     map_id, map_name = row
                     yield GroupedOption("Current Map", (MapOption(map_name, map_id=map_id),))
 
-            yield GroupedOption("Full Item List", tuple(gen_item_options()))
+            yield GroupedOption("Items", tuple(gen_item_options()))
+            yield GroupedOption(
+                "Full Item List",
+                (
+                    FullItemListOption(
+                        "Full Item List",
+                        description=(
+                            "Note that selecting this option may cause the game to freeze for"
+                            "several seconds while the entire list is generated."
+                        ),
+                    ),
+                ),
+            )
 
         except Exception:  # noqa: BLE001
             yield ButtonOption(
