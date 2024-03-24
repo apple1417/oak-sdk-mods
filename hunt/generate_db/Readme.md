@@ -22,6 +22,15 @@ Note anywhere the rest of the page mentions a "path name", that's excluding the 
 `/Game/Some/Object.Path`, not `Object'/Game/Some/Object.Path'`. Anywhere it mentions a "short name",
 it's just the name of the final object in the path - i.e. `Path`.
 
+## Case Sensitivity
+Both path names and short names are made up of `FName`s. Unreal generally considers these case
+insensitive. Technically, there's no guarantee what casing you'll get when you read one out, and it
+may change between game launches, but in practice it's constant. The tracker performs case sensitive
+comparisons however. If you're careful, you can just make sure all entries in the database have the
+casing you get when reading them out, and it isn't really a problem. As an extra piece of safety
+however, when creating your tables you can set the relevant columns as `COLLATE NOCASE`. Setting
+this on the table is more efficient than doing so every query.
+
 ## Multiple Connections
 TLDR: enable WAL when generating your template database: `PRAGMA journal_mode = WAL`.
 
@@ -61,7 +70,7 @@ items, every row in this table must be an actual item players are expected to co
 | Name        | The item's name.                                                                                                                     |
 | Description | The pre-formatted HTML description - all the fancy text you see scrolling through the item list is just copied straight out of here. |
 | Points      | How many points the item is worth. Should probably be a positive integer.                                                            |
-| Balance     | The path name of the item's balance. Very important to get this right.                                                               |
+| Balance     | The path name of the item's balance. Very important to get this right. Should be case insensitive.                                   |
 
 The completion counter is added by the tracker in front of the description, it's not part of it.
 
@@ -71,12 +80,12 @@ sources, they also added dedicated balances. Since these balances are indistinis
 use this table to map the generic balances back to the dedicated ones, which are used everywhere
 else in the db.
 
-| Column          | Description                                                     |
-| --------------- | --------------------------------------------------------------- |
-| ID              | Primary key.                                                    |
-| RootBalance     | The path name of the root balance.                              |
-| Part            | The part which matches this particular mapping.                 |
-| ExpandedBalance | Foreign Key on `Items(Balance)`. The balance this part maps to. |
+| Column          | Description                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| ID              | Primary key.                                                                                |
+| RootBalance     | The path name of the root balance.  Should be case insensitive.                             |
+| Part            | The part which matches this particular mapping. Should be case insensitive.                 |
+| ExpandedBalance | Foreign Key on `Items(Balance)`. The balance this part maps to. Should be case insensitive. |
 
 If an item matches `RootBalance`, it's part list is looked through, and the first part which is in
 `Part` is matched, and `ExpandedBalance` is used in further processing. If no part match is found,
@@ -87,12 +96,12 @@ While not designed for it, you could probably repurpose this table to add part-s
 ### `Drops`
 This is the list of valid drops.
 
-| Column        | Description                                                                          |
-| ------------- | ------------------------------------------------------------------------------------ |
-| ID            | Primary key.                                                                         |
-| ItemBalance   | Foreign Key on `Items(Balance)`.                                                     |
-| EnemyClass    | The path name of the enemy class which is allowed to drop this item. Null means any. |
-| ExtraItemPool | The path name of the extra item pool, set by spawn options. Null means any.          |
+| Column        | Description                                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| ID            | Primary key.                                                                                                     |
+| ItemBalance   | Foreign Key on `Items(Balance)`. Should be case insensitive.                                                     |
+| EnemyClass    | The path name of the enemy class which is allowed to drop this item. Null means any. Should be case insensitive. |
+| ExtraItemPool | The path name of the extra item pool, set by spawn options. Null means any. Should be case insensitive.          |
 
 If `EnemyClass` is null, any drop of the item anywhere will be accepted, it makes it a world drop.
 `ExtraItemPool` is completely ignored in this case.
@@ -129,23 +138,23 @@ one inserts into both tables.
 ### `MissionTokens`
 This table holds which mission completions unlock extra world drop tokens, and how many.
 
-| Column           | Description                                                      |
-| ---------------- | ---------------------------------------------------------------- |
-| ID               | Primary key.                                                     |
-| MissionClass     | The path name of the mission class to watch for completion on.   |
-| InitialTokens    | How many tokens this mission is worth on the first completion.   |
-| SubsequentTokens | How many tokens this mission is worth on subsequent completions. |
+| Column           | Description                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| ID               | Primary key.                                                                               |
+| MissionClass     | The path name of the mission class to watch for completion on. Should be case insensitive. |
+| InitialTokens    | How many tokens this mission is worth on the first completion.                             |
+| SubsequentTokens | How many tokens this mission is worth on subsequent completions.                           |
 
 Note that the description of the tokens option is hardcoded, it is not based on this table.
 
 ### `CompletedMissions`
 The tracker inserts all completed missions into this table.
 
-| Column       | Description                                          |
-| ------------ | ---------------------------------------------------- |
-| ID           | Primary key.                                         |
-| MissionClass | The path name of the class of the completed mission. |
-| CompleteTime | A datetime, defaults to the current timestamp.       |
+| Column       | Description                                                                      |
+| ------------ | -------------------------------------------------------------------------------- |
+| ID           | Primary key.                                                                     |
+| MissionClass | The path name of the class of the completed mission. Should be case insensitive. |
+| CompleteTime | A datetime, defaults to the current timestamp.                                   |
 
 `MissionClass` directly relates to `MissionTokens(MissionClass)` - however there isn't an explicit
 foreign key relationship. The tracker inserts every single mission, as this info can be used for
@@ -156,12 +165,12 @@ reward tokens.
 This table exists purely for data analysis. The tracker inserts every save quit into it, which
 allows coming up with interesting stats such as "Total SQs" or "SQs since last drop".
 
-| Column    | Description                                                          |
-| --------- | -------------------------------------------------------------------- |
-| ID        | Primary key.                                                         |
-| WorldName | The short name of the map the SQ was on.                             |
-| Station   | The path name of the respawn station the player was at when they sq. |
-| QuitTime  | A datetime, defaults to the current timestamp.                       |
+| Column    | Description                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| ID        | Primary key.                                                                                     |
+| WorldName | The short name of the map the SQ was on. Should be case insensitive.                             |
+| Station   | The path name of the respawn station the player was at when they sq. Should be case insensitive. |
+| QuitTime  | A datetime, defaults to the current timestamp.                                                   |
 
 `WorldName` is *not* a foreign key on `Maps(WorldName)`. This makes sure this table can still be
 insert into even if the maps table is incomplete.
@@ -177,11 +186,11 @@ Essentially just an enum. The names of the "planets" we sort the options list in
 ### `Maps`
 Essentially just an enum. The names of the maps we sort the options list into.
 
-| Column    | Description                                                                                             |
-| --------- | ------------------------------------------------------------------------------------------------------- |
-| ID        | Primary key.                                                                                            |
-| Name      | The display name of the map.                                                                            |
-| WorldName | The short name of the map's world object. May be null for "pseudo-maps", used only in the options list. |
+| Column    | Description                                                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| ID        | Primary key.                                                                                                                        |
+| Name      | The display name of the map.                                                                                                        |
+| WorldName | The short name of the map's world object. May be null for "pseudo-maps", used only in the options list. Should be case insensitive. |
 
 ### `OptionsList`
 Defines the categories and the ordering of the outermost item list in options.
@@ -206,15 +215,15 @@ the question "if I'm on planet/map x, what items can I get?".
 
 Note this has no influence on where items are actually allowed, it's only used for the options list.
 
-| Column     | Description                      |
-| ---------- | -------------------------------- |
-| ID         | Primary key, used for ordering.  |
-| PlanetID   | Foreign key on `Planet(ID)`.     |
-| PlanetName | Foreign key on `Planet(Name)`.   |
-| MapID      | Foreign key on `Map(ID)`.        |
-| MapName    | Foreign key on `Map(Name)`.      |
-| WorldName  | Foreign key on `Map(WorldName)`. |
-| ItemID     | Foreign key on `Items(ID)`.      |
+| Column     | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| ID         | Primary key, used for ordering.                              |
+| PlanetID   | Foreign key on `Planet(ID)`.                                 |
+| PlanetName | Foreign key on `Planet(Name)`.                               |
+| MapID      | Foreign key on `Map(ID)`.                                    |
+| MapName    | Foreign key on `Map(Name)`.                                  |
+| WorldName  | Foreign key on `Map(WorldName)`. Should be case insensitive. |
+| ItemID     | Foreign key on `Items(ID)`.                                  |
 
 As above, this table pre-joins the planet/map tables - though this time, both planet and map are
 required in every row.

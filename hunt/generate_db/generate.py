@@ -189,7 +189,7 @@ CARTEL_DUPLICATE_MINIBOSSES: tuple[tuple[str, str], ...] = (
     ),
     (
         "/Game/PatchDLC/Event2/Enemies/Tiny/Psycho/Badass/_Design/Character/BPChar_PsychoBadassTinyEvent2.BPChar_PsychoBadassTinyEvent2_C",
-        "/Game/PatchDLC/Event2/Enemies/Tiny/Psycho/Badass/_Design/Character/BPChar_PsychoBadassTinyEvent2_MiniBoss.BPChar_PsychoBadassTinyEvent2_MiniBoss_C",
+        "/Game/PatchDLC/Event2/Enemies/Tiny/Psycho/Badass/_Design/Character/BPChar_PsychoBadassTinyEvent2_Miniboss.BPChar_PsychoBadassTinyEvent2_Miniboss_C",
     ),
     (
         "/Game/PatchDLC/Event2/Enemies/Tiny/Trooper/Badass/_Design/Character/BPChar_TrooperBadassTinyEvent2.BPChar_TrooperBadassTinyEvent2_C",
@@ -865,7 +865,7 @@ if __name__ == "__main__":
         CREATE TABLE Maps (
             ID        INTEGER NOT NULL UNIQUE,
             Name      TEXT NOT NULL UNIQUE,
-            WorldName TEXT UNIQUE,
+            WorldName TEXT UNIQUE COLLATE NOCASE,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
         """,
@@ -929,7 +929,7 @@ if __name__ == "__main__":
             Name        TEXT NOT NULL UNIQUE,
             Description TEXT NOT NULL,
             Points      INTEGER NOT NULL,
-            Balance     TEXT NOT NULL UNIQUE,
+            Balance     TEXT NOT NULL UNIQUE COLLATE NOCASE,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
         """,
@@ -1025,9 +1025,9 @@ if __name__ == "__main__":
         """
         CREATE TABLE Drops (
             ID            INTEGER NOT NULL UNIQUE,
-            ItemBalance   TEXT NOT NULL,
-            EnemyClass    TEXT,
-            ExtraItemPool TEXT,
+            ItemBalance   TEXT NOT NULL COLLATE NOCASE,
+            EnemyClass    TEXT COLLATE NOCASE,
+            ExtraItemPool TEXT COLLATE NOCASE,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ItemBalance) REFERENCES Items(Balance),
             UNIQUE(ItemBalance, EnemyClass)
@@ -1182,7 +1182,7 @@ if __name__ == "__main__":
             PlanetName TEXT NOT NULL,
             MapID      INTEGER NOT NULL,
             MapName    TEXT NOT NULL,
-            WorldName  TEXT,
+            WorldName  TEXT COLLATE NOCASE,
             ItemID     INTEGER NOT NULL,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(PlanetID) REFERENCES Planets(ID),
@@ -1381,7 +1381,7 @@ if __name__ == "__main__":
         """
         CREATE TABLE CompletedMissions (
             ID               INTEGER NOT NULL UNIQUE,
-            MissionClass     TEXT NOT NULL,
+            MissionClass     TEXT NOT NULL COLLATE NOCASE,
             CompleteTime     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
@@ -1391,7 +1391,7 @@ if __name__ == "__main__":
         """
         CREATE TABLE MissionTokens (
             ID               INTEGER NOT NULL UNIQUE,
-            MissionClass     TEXT NOT NULL UNIQUE,
+            MissionClass     TEXT NOT NULL UNIQUE COLLATE NOCASE,
             InitialTokens    INTEGER NOT NULL,
             SubsequentTokens INTEGER NOT NULL,
             PRIMARY KEY(ID AUTOINCREMENT)
@@ -1442,8 +1442,8 @@ if __name__ == "__main__":
         """
         CREATE TABLE SaveQuits (
             ID        INTEGER NOT NULL UNIQUE,
-            WorldName TEXT NOT NULL,
-            Station   TEXT NOT NULL,
+            WorldName TEXT NOT NULL COLLATE NOCASE,
+            Station   TEXT NOT NULL COLLATE NOCASE,
             QuitTime  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(ID AUTOINCREMENT)
         )
@@ -1454,9 +1454,9 @@ if __name__ == "__main__":
         """
         CREATE TABLE ExpandableBalances (
             ID              INTEGER NOT NULL UNIQUE,
-            RootBalance     TEXT NOT NULL,
-            Part            TEXT NOT NULL,
-            ExpandedBalance TEXT NOT NULL,
+            RootBalance     TEXT NOT NULL COLLATE NOCASE,
+            Part            TEXT NOT NULL COLLATE NOCASE,
+            ExpandedBalance TEXT NOT NULL COLLATE NOCASE,
             PRIMARY KEY(ID AUTOINCREMENT),
             FOREIGN KEY(ExpandedBalance) REFERENCES Items(Balance)
         )
