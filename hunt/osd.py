@@ -216,7 +216,7 @@ ALL_STATS: tuple[HuntStat, ...] = (
         "SQs Since Last Drop",
         False,
         description=(
-            "Show the amount of times you've sq since collecting the last drop, including"
+            "Show the amount of times you've save quit since collecting the last drop, including"
             " duplicates."
         ),
         format_id="sqs_since_last_drop",
@@ -244,8 +244,8 @@ ALL_STATS: tuple[HuntStat, ...] = (
         "SQs Since Last Item",
         False,
         description=(
-            "Show the amount of times you've sq since collecting the last new item, excluding"
-            " duplicates."
+            "Show the amount of times you've save quit since collecting the last new item,"
+            " excluding duplicates."
         ),
         format_id="sqs_since_last_item",
         sql="""
@@ -264,6 +264,87 @@ ALL_STATS: tuple[HuntStat, ...] = (
                             NumCollected > 0
                         ORDER BY
                             FirstCollectTime DESC
+                        LIMIT 1
+                    ),
+                    ''
+                )
+            """,
+    ),
+    HuntStat(
+        "Items Since Last Mark",
+        False,
+        description=(
+            "Show the amount of new unique items you've collected since last setting a mark,"
+            " excluding duplicates."
+        ),
+        format_id="items_since_last_mark",
+        sql="""
+            SELECT
+                COUNT(*) FILTER (WHERE NumCollected > 0)
+            FROM
+                CollectedItems
+            WHERE
+                FirstCollectTime > IFNULL(
+                    (
+                        SELECT
+                            MarkTime
+                        FROM
+                            StatMarks
+                        ORDER BY
+                            rowid DESC
+                        LIMIT 1
+                    ),
+                    ''
+                )
+            """,
+    ),
+    HuntStat(
+        "Drops Since Last Mark",
+        False,
+        description=(
+            "Show the amount of drops you've collected since last setting a mark, including"
+            " duplicates."
+        ),
+        format_id="drops_since_last_mark",
+        sql="""
+            SELECT
+                COUNT(*)
+            FROM
+                Collected
+            WHERE
+                CollectTime > IFNULL(
+                    (
+                        SELECT
+                            MarkTime
+                        FROM
+                            StatMarks
+                        ORDER BY
+                            rowid DESC
+                        LIMIT 1
+                    ),
+                    ''
+                )
+            """,
+    ),
+    HuntStat(
+        "SQs Since Last Mark",
+        False,
+        description="Show the amount of times you've save quit since last setting a mark.",
+        format_id="sqs_since_last_mark",
+        sql="""
+            SELECT
+                COUNT(*)
+            FROM
+                SaveQuits
+            WHERE
+                QuitTime > IFNULL(
+                    (
+                        SELECT
+                            MarkTime
+                        FROM
+                            StatMarks
+                        ORDER BY
+                            rowid DESC
                         LIMIT 1
                     ),
                     ''

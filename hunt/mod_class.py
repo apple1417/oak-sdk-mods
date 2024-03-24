@@ -15,7 +15,7 @@ from mods_base import (
 )
 
 from .db import open_db, reset_db
-from .db_options import MapOption, PlanetOption, create_item_option
+from .db_options import FullItemListOption, MapOption, PlanetOption, create_item_option
 from .native import drops
 from .osd import OUTPUT_TEXT_FILE, TEMPLATE_TEXT_FILE, osd_option, update_osd
 from .tokens import redeem_token_option
@@ -46,6 +46,24 @@ def gen_item_options() -> Iterator[BaseOption]:
             else:
                 assert planet_id is not None and planet_name is not None
                 yield PlanetOption(planet_name, planet_id=planet_id)
+
+
+yes_choice = DialogBoxChoice("Yes")
+
+
+@DialogBox(
+    "Set a new Mark?",
+    (yes_choice, DialogBox.CANCEL),
+    "Are you sure you want to set a new mark?",
+    dont_show=True,
+)
+def confirm_mark(choice: DialogBoxChoice) -> None:
+    """Dialog box to confirm setting a mark."""
+    if choice != yes_choice:
+        return
+    with open_db("w") as cur:
+        cur.execute("INSERT INTO StatMarks DEFAULT VALUES")
+    update_osd()
 
 
 def gen_progression_options() -> Iterator[BaseOption]:
@@ -95,6 +113,18 @@ def gen_progression_options() -> Iterator[BaseOption]:
                     "Update Now",
                     description="Forces the displays to update now.",
                     on_press=lambda _: update_osd(),
+                ),
+                ButtonOption(
+                    "Set Mark",
+                    description=(
+                        "Some stats count since the last time you set a mark. You can set a mark"
+                        " here at any time, to allow you to track these stats over an arbitrary"
+                        " period of time.\n"
+                        "\n"
+                        "For example, you might want to set a mark before starting Arms Race, so"
+                        " that you can track the total amount of SQs it takes you to clear it."
+                    ),
+                    on_press=lambda _: confirm_mark.show(),
                 ),
                 GroupedOption(
                     "External Text File",

@@ -1474,5 +1474,15 @@ if __name__ == "__main__":
                 (root_balance, part, expanded_balance),
             )
 
+    cur.execute(
+        """
+        CREATE TABLE StatMarks (
+            ID       INTEGER NOT NULL UNIQUE,
+            MarkTime TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY(ID AUTOINCREMENT)
+        )
+        """,
+    )
+
     cur.close()
     con.commit()

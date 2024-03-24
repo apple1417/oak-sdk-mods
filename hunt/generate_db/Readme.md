@@ -175,6 +175,17 @@ allows coming up with interesting stats such as "Total SQs" or "SQs since last d
 `WorldName` is *not* a foreign key on `Maps(WorldName)`. This makes sure this table can still be
 insert into even if the maps table is incomplete.
 
+### `StatMarks`
+Again, this table exists purely for data analysis. Users can create a new mark at any time, which
+inserts a new row with the current time, allowing queries like "SQs since last mark".
+
+| Column   | Description                                    |
+| -------- | ---------------------------------------------- |
+| ID       | Primary key.                                   |
+| MarkTime | A datetime, defaults to the current timestamp. |
+
+The tracker assumes the lowest row is always the latest mark - it only ever inserts default values.
+
 ### `Planets`
 Essentially just an enum. The names of the "planets" we sort the options list into.
 
