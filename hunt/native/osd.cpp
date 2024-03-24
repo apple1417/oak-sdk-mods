@@ -58,14 +58,14 @@ union StaticStructs {
    private:
     struct Inner {
         WrappedStruct background_to_draw{draw_rect_func};
-        std::vector<WrappedStruct> text_to_draw{};
+        std::vector<WrappedStruct> text_to_draw;
     } value{};
 
    public:
     ~StaticStructs() {}  // Deliberately empty + leaking
 
-    inline WrappedStruct& background_to_draw(void) { return value.background_to_draw; }
-    inline std::vector<WrappedStruct>& text_to_draw(void) { return value.text_to_draw; }
+    WrappedStruct& background_to_draw(void) { return value.background_to_draw; }
+    std::vector<WrappedStruct>& text_to_draw(void) { return value.text_to_draw; }
 } structs;
 
 bool draw_hud_hook(unrealsdk::hook_manager::Details& details) {

@@ -328,9 +328,9 @@ MISSION_TOKEN_REWARDS: tuple[tuple[str, int, int], ...] = (
     ),
 )
 
-CRAZY_EARL_DOOR: (
-    str
-) = "/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/BP_CrazyEarlDoor.BP_CrazyEarlDoor_C"
+CRAZY_EARL_DOOR: str = (
+    "/Game/InteractiveObjects/GameSystemMachines/CrazyEarl/BP_CrazyEarlDoor.BP_CrazyEarlDoor_C"
+)
 
 ENEMY_NAME_OVERRIDES: dict[str, str | None] = {
     "Crawly, Cybil": "Cybil Crawly",
@@ -944,8 +944,8 @@ if __name__ == "__main__":
                 continue
 
             # There are some non-breaking spaces in the sheet download, normalize them
-            name = name.replace("\u00A0", " ")
-            description = description.replace("\u00A0", " ")
+            name = name.replace("\u00a0", " ")
+            description = description.replace("\u00a0", " ")
 
             points = int(points)
 

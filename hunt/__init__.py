@@ -20,7 +20,7 @@ from .tokens import (
 
 # isort: split
 # Import for side effects
-from . import drops  # noqa: F401 # noqa: F401  # pyright: ignore[reportUnusedImport]
+from . import db, drops  # noqa: F401 # noqa: F401  # pyright: ignore[reportUnusedImport]
 
 __version__: str
 __version_info__: tuple[int, ...]
