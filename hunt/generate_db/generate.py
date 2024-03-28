@@ -870,7 +870,8 @@ if __name__ == "__main__":
         INSERT INTO
             MetaData (Key, Value)
         VALUES
-            ("Version", "1"),
+            ("Schema", "1"),
+            ("Version", "2"),
             ("GeneratedTime", datetime())
         """,
     )

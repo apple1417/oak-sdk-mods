@@ -57,6 +57,9 @@ Holds miscellaneous metadata about the database. Not really intended for program
 | Key    | Primary key. The metadata's key. |
 | Value  | The metadata's key.              |
 
+The key `Schema` with value `1` should be included by default. This may be used in future to
+identify required migrations; the current version of the tracker ignores it.
+
 Whenever the tracker reloads the db from the template, it inserts the key `StartTime`, with the
 current datetime as the value.
 
