@@ -70,7 +70,7 @@ std::optional<std::pair<UObject*, std::optional<std::wstring>>> find_matching_dr
             // Deliberately not using a cached property, since this does not exist on all actors
             bal_comp = actor->get<UObjectProperty>(L"BalanceComponent"_fn);
         } catch (const std::invalid_argument&) {
-            continue;
+            return {{actor, std::nullopt}};
         }
 
         if (bal_comp == nullptr) {
