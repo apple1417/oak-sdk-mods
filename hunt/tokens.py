@@ -46,21 +46,20 @@ def redeem_confirm_dialog(choice: DialogBoxChoice) -> None:
                 Items
             WHERE
                 Balance = ?
+            RETURNING
+                ID
             """,
             (inspected_item_balance,),
         )
+        collected_id = cur.fetchone()[0]
         cur.execute(
             """
             INSERT INTO
                 TokenRedeems (CollectedID)
-            SELECT
-                ID
-            FROM
-                Items
-            WHERE
-                rowid = ?
+            VALUES
+                (?)
             """,
-            (cur.lastrowid,),
+            (collected_id,),
         )
 
     inspected_item_balance = None
