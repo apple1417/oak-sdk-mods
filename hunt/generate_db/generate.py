@@ -168,32 +168,47 @@ OPTIONS_LAYOUT: tuple[Planet, ...] = (
     ),
 )
 
-# The cartel minibosses all have two bpchars each, one for next to joey, one everywhere else
-# The DB only stores one, so we need to duplicate them
-CARTEL_DUPLICATE_MINIBOSSES: tuple[tuple[str, str], ...] = (
-    (
+
+# In a few cases there are multiple classes which we consider part of the same enemy
+@dataclass(frozen=True)
+class DuplicateSource:
+    existing: str
+    duplicate: str
+
+
+DUPLICATE_SOURCES: tuple[DuplicateSource, ...] = (
+    # The cartel minibosses all have two bpchars each, one for next to joey (miniboss), one
+    # everywhere else - the db only stores the non-miniboss version
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Cyber/Punk/TechLt/_Design/Character/BPChar_PunkCyberLt.BPChar_PunkCyberLt_C",
         "/Game/PatchDLC/Event2/Enemies/Cyber/Punk/TechLt/_Design/Character/BPChar_PunkCyberLt_MiniBoss.BPChar_PunkCyberLt_MiniBoss_C",
     ),
-    (
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Cyber/Trooper/Capo/_Design/Character/BPChar_CyberTrooperCapo.BPChar_CyberTrooperCapo_C",
         "/Game/PatchDLC/Event2/Enemies/Cyber/Trooper/Capo/_Design/Character/BPChar_CyberTrooperCapo_MiniBoss.BPChar_CyberTrooperCapo_MiniBoss_C",
     ),
-    (
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Meat/Punk/RoasterLT/_Design/Character/BPChar_Punk_Roaster.BPChar_Punk_Roaster_C",
         "/Game/PatchDLC/Event2/Enemies/Meat/Punk/RoasterLT/_Design/Character/BPChar_Punk_Roaster_MiniBoss.BPChar_Punk_Roaster_MiniBoss_C",
     ),
-    (
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Meat/Tink/TenderizerLt/_Design/Character/BPChar_Tink_Tenderizer.BPChar_Tink_Tenderizer_C",
         "/Game/PatchDLC/Event2/Enemies/Meat/Tink/TenderizerLt/_Design/Character/BPChar_Tink_Tenderizer_MiniBoss.BPChar_Tink_Tenderizer_MiniBoss_C",
     ),
-    (
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Tiny/Psycho/Badass/_Design/Character/BPChar_PsychoBadassTinyEvent2.BPChar_PsychoBadassTinyEvent2_C",
         "/Game/PatchDLC/Event2/Enemies/Tiny/Psycho/Badass/_Design/Character/BPChar_PsychoBadassTinyEvent2_Miniboss.BPChar_PsychoBadassTinyEvent2_Miniboss_C",
     ),
-    (
+    DuplicateSource(
         "/Game/PatchDLC/Event2/Enemies/Tiny/Trooper/Badass/_Design/Character/BPChar_TrooperBadassTinyEvent2.BPChar_TrooperBadassTinyEvent2_C",
         "/Game/PatchDLC/Event2/Enemies/Tiny/Trooper/Badass/_Design/Character/BPChar_TrooperBadassTinyEvent2_MiniBoss.BPChar_TrooperBadassTinyEvent2_MiniBoss_C",
+    ),
+    # Also add loot tink backpacks as equivalent to the tink
+    # In practice I don't think this matters, I think the rynah only drops off of the tink, but lets
+    # be safe
+    DuplicateSource(
+        "/Game/Enemies/Tink/Loot/_Design/Character/BPChar_TinkLoot.BPChar_TinkLoot_C",
+        "/Game/Enemies/Tink/Loot/_Design/InteractiveObjects/IO_TinkLoot_Pack.IO_TinkLoot_Pack_C",
     ),
 )
 
@@ -754,7 +769,7 @@ def iter_item_sources(con: sqlite3.Connection, item_id: int) -> Iterator[str]:
             assert combined_enemy_name is None
             continue
 
-        if enemy_class in (x[1] for x in CARTEL_DUPLICATE_MINIBOSSES):
+        if enemy_class in {d.duplicate for d in DUPLICATE_SOURCES}:
             continue
         if enemy_class == CRAZY_EARL_DOOR:
             combined_enemy_name = "Crazy Earl (redeeming Loot-o-Gram) / Dinklebot (via Loot-o-Gram)"
@@ -1077,7 +1092,7 @@ if __name__ == "__main__":
             (item_pool, enemy_cls),
         )
     # Duplicate the cartel minibosses
-    for existing, duplicate in CARTEL_DUPLICATE_MINIBOSSES:
+    for dupe_info in DUPLICATE_SOURCES:
         cur.execute(
             """
             INSERT INTO
@@ -1090,7 +1105,7 @@ if __name__ == "__main__":
             WHERE
                 EnemyClass = ?
             """,
-            (duplicate, existing),
+            (dupe_info.duplicate, dupe_info.existing),
         )
     # Remove The Black Rook, who is unused, and Eadric Edelhard, who is unkillable
     cur.execute(
