@@ -3,18 +3,18 @@ name = "hunt"
 version = "2.3.2"
 authors = [{ name = "apple1417" }]
 description = """
-The offical Borderlands 3 Hunt Tracker.
+The official Borderlands 3 Hunt Tracker.
 
-How quickly can you collect all unique items? This mod will track it for you. Automatically \
-redeems items when you obtain them from a valid source, and provides a number of in-game menus to \
-track your progression.
+Keep track of your collected unique items. View statistics about your run, and display them in \
+game. Or just use the encyclopedia of drop sources as a reference.
 """
 
 [project.urls]
 Rules = "https://apple1417.dev/bl3/hunt"
+"Google Sheet" = "https://docs.google.com/spreadsheets/d/1wwxGn2XY14qtANYcWDdREvZQzHU5c7_EGNXUQTjgW_o/edit?usp=sharing"
 
 [tool.sdkmod]
 name = "Hunt Tracker"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
-download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/hunt.sdkmod"
+download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/hunt.zip"
 supported_games = ["BL3"]
