@@ -27,7 +27,7 @@ When an enemy dies, it's drops are added to `SpawnLootManager::DroppedPickupRequ
 contains both the balance which is dropped and the reference to the enemy, it's how we detect if the
 drop came from a valid source.
 
-We can't hook on this object unfortuantly, the best time we can manage is when the item is
+We can't hook on this object unfortunately, the best time we can manage is when the item is
 constructed - but the construction hook doesn't have any reference back to the enemy. We instead
 iterate back through all the requests in globals to try find the request for the current item. We do
 this by matching balance.

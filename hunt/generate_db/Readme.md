@@ -110,7 +110,7 @@ If `EnemyClass` is null, any drop of the item anywhere will be accepted, it make
 `ExtraItemPool` is completely ignored in this case.
 
 Mincemeat uses the standard badass psycho enemy class, and Muldock uses the standard anointed
-enforcer class. They both use spawn options to rename themseleves, and to add the custom drops. The
+enforcer class. They both use spawn options to rename themselves, and to add the custom drops. The
 `ExtraItemPool` column can be used to filter these cases - to prevent world drop Tunguska from a
 regular badass psycho from being accepted. In 99% of cases, this column should just be null.
 

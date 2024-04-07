@@ -154,7 +154,7 @@ def get_pyproject_with_git_version(mod_folder: Path) -> str:
         The new contents of the pyproject.toml after injecting the version.
     """
     # tomllib does not support writing, so we'll need to insert the version manually
-    # Unfortuantly, the TOML spec is kind of dumb and doesn't give us any good way to insert an
+    # Unfortunately, the TOML spec is kind of dumb and doesn't give us any good way to insert an
     # arbitrary key - duplicate tables aren't allowed, and a root level `tool.sdkmod.version` will
     # conflict with a separate `[tool.sdkmod]` table anywhere else too
     # This means we need to try parse it manually to find the right spot
