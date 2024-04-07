@@ -1,8 +1,11 @@
 [project]
 name = "dialog_skipper"
-version = "1"
+version = "2"
 authors = [{ name = "apple1417" }]
 description = "Adds a keybind to skip dialog."
+
+[project.urls]
+Changelog = "https://github.com/apple1417/oak-sdk-mods/blob/master/dialog_skipper/changelog.md"
 
 [tool.sdkmod]
 name = "Dialog Skipper"
