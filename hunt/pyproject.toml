@@ -1,6 +1,6 @@
 [project]
 name = "hunt"
-version = "2.3.2"
+version = "3.3.2"
 authors = [{ name = "apple1417" }]
 description = """
 The official Borderlands 3 Hunt Tracker.
