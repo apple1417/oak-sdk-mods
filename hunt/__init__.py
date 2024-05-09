@@ -2,9 +2,14 @@
 
 if True:
     assert __import__("mods_base").__version_info__ >= (1, 1), "Please update the SDK"
-    assert __import__("bl3_mod_menu").__version_info__ >= (1, 0), "Please update the SDK"
     assert __import__("pyunrealsdk").__version_info__ >= (1, 1, 0), "Please update the SDK"
     assert __import__("ui_utils").__version_info__ >= (1, 0), "Please update the SDK"
+
+    from mods_base import Game
+
+    assert Game.get_current() == Game.BL3, "The Hunt Tracker only works in BL3"
+
+    assert __import__("bl3_mod_menu").__version_info__ >= (1, 0), "Please update the SDK"
 
 from mods_base import SETTINGS_DIR, build_mod
 
