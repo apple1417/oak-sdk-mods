@@ -1,3 +1,3 @@
-[submodule ".common_cmake"]
-	path = .common_cmake
-	url = git@github.com:bl-sdk/common_cmake.git
+[submodule ".oak-mod-manager"]
+	path = .oak-mod-manager
+	url = git@github.com:bl-sdk/oak-mod-manager.git
