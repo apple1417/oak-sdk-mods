@@ -16,8 +16,6 @@ env:
   # xwin settings
   XWIN_VERSION: xwin-0.5.0-x86_64-unknown-linux-musl
   XWIN_DOWNLOAD: https://github.com/Jake-Shadle/xwin/releases/download/0.5.0/xwin-0.5.0-x86_64-unknown-linux-musl.tar.gz
-  # Python settings
-  PYTHON_VERSION: "3.12.3"
   # Limit which presets make artifacts
   RELEASE_ARTIFACT_PRESET: "msvc-release"
   ALLOWED_ARTIFACT_PRESETS: "msvc-release;"
@@ -82,6 +80,16 @@ jobs:
     - name: Setup Pip
       run: pip install requests
 
+    # `actions/checkout` automatically deals with ssh urls, but we have CMake pull some instead
+    # Since the mod manager repo (and it's subrepos) use ssh urls, we need to add a key
+    - name: Add ssh key
+      # Windows specially needs to use an older version
+      # https://github.com/webfactory/ssh-agent/pull/17#issuecomment-1851790415
+      # https://github.com/webfactory/ssh-agent/issues/202
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Checkout repository and submodules
       uses: actions/checkout@v4
       with:
@@ -91,7 +99,6 @@ jobs:
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: >
         python ./prepare_releases.py
-        --download-py ${{ env.PYTHON_VERSION }}
         --preset ${{ matrix.preset }}
         --configure
         --build
@@ -197,6 +204,11 @@ jobs:
           --include-debug-libs          \
           --output ~/xwin
 
+    - name: Add ssh key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Checkout repository and submodules
       uses: actions/checkout@v4
       with:
@@ -206,7 +218,6 @@ jobs:
       working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: >
         ./prepare_releases.py
-        --download-py ${{ env.PYTHON_VERSION }}
         --preset ${{ matrix.preset }}
         --configure -C-G=Ninja -C-DXWIN_DIR=$(readlink -f ~)/xwin
         --build
@@ -249,6 +260,11 @@ jobs:
       with:
         python-version: ">=3.11"
 
+    - name: Add ssh key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Checkout repository and submodules
       uses: actions/checkout@v4
       with:
@@ -261,7 +277,6 @@ jobs:
         pip install pyyaml requests
 
         python prepare_releases.py                                              `
-          --download-py ${{ env.PYTHON_VERSION }}                               `
           --preset ${{ matrix.preset }}                                         `
           --configure -C-DCMAKE_DISABLE_PRECOMPILE_HEADERS=On
 
@@ -355,7 +370,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: ">=3.11"
         cache: 'pip'
 
     - name: Install tomlq
@@ -409,11 +424,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Download releases
       uses: actions/download-artifact@v4

@@ -10,26 +10,8 @@ from functools import cache
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-DOWNLOAD_PY_SCRIPT = (
-    Path(__file__).parent
-    / ".libs"
-    / "pyunrealsdk"
-    / "common_cmake"
-    / "explicit_python"
-    / "download.py"
-)
 CMAKE_LIST_PRESETS_RE = re.compile('  "(.+)"')
 CMAKE_BUILD_DIR_BASE = Path(".out") / "build"
-
-
-def download_py_libs(version: str) -> None:
-    """
-    Downloads the python libs for the given version.
-
-    Args:
-        version: The version to download.
-    """
-    subprocess.check_call([sys.executable, str(DOWNLOAD_PY_SCRIPT), version, "amd64"])
 
 
 @cache
@@ -223,11 +205,6 @@ if __name__ == "__main__":
         description="CMake helpers to run before preparing the release.",
     )
     group.add_argument(
-        "--download-py",
-        metavar="VERSION",
-        help="Download the python libraries at the given version before configuring.",
-    )
-    group.add_argument(
         "--preset",
         choices=cmake_get_presets(),
         metavar="PRESET",
@@ -265,9 +242,6 @@ if __name__ == "__main__":
         for preset in cmake_get_presets():
             print(f'  "{preset}"')
         sys.exit(0)
-
-    if args.download_py:
-        download_py_libs(args.download_py)
 
     if args.preset:
         if args.configure:
