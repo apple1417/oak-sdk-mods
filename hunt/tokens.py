@@ -1,12 +1,22 @@
 # ruff: noqa: D103
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from bl3_mod_menu import DialogBox, DialogBoxChoice
-from mods_base import EInputEvent, KeybindOption, hook, html_to_plain_text, raw_keybinds
+from mods_base import EInputEvent, KeybindOption, hook, html_to_plain_text
 from ui_utils import show_hud_message
 from unrealsdk import logging
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
+
+if TYPE_CHECKING:
+    from keybinds import raw_keybinds
+
+else:
+    try:
+        from keybinds import raw_keybinds
+    except ImportError:
+        # Import from the old location instead
+        from mods_base import raw_keybinds
 
 from .db import open_db
 from .native.drops import get_inventory_balance_name
