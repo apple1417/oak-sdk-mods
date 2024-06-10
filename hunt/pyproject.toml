@@ -1,6 +1,6 @@
 [project]
 name = "hunt"
-version = "3.3.2"
+version = "4.3.2"
 authors = [{ name = "apple1417" }]
 description = """
 The official Borderlands 3 Hunt Tracker.
@@ -12,6 +12,7 @@ game. Or just use the encyclopedia of drop sources as a reference.
 [project.urls]
 Rules = "https://apple1417.dev/bl3/hunt"
 "Google Sheet" = "https://docs.google.com/spreadsheets/d/1wwxGn2XY14qtANYcWDdREvZQzHU5c7_EGNXUQTjgW_o/edit?usp=sharing"
+Changelog = "https://github.com/apple1417/oak-sdk-mods/blob/master/hunt/changelog.md"
 
 [tool.sdkmod]
 name = "Hunt Tracker"
