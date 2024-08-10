@@ -2,7 +2,7 @@
 
 import string
 from collections.abc import Callable
-from dataclasses import KW_ONLY, dataclass
+from dataclasses import KW_ONLY, dataclass, field
 from threading import Thread
 from typing import Any, Self
 
@@ -24,8 +24,6 @@ def on_hunt_stat_change(option: BoolOption, new_value: bool) -> None:
 
 @dataclass
 class HuntStat(BoolOption):
-    on_change: Callable[[Self, bool], None] | None = on_hunt_stat_change
-
     _: KW_ONLY
     format_id: str
     sql: str
@@ -33,6 +31,8 @@ class HuntStat(BoolOption):
 
     def __post_init__(self) -> None:
         super().__post_init__()
+
+        self.on_change = on_hunt_stat_change
 
         self.description += f"\n\nIn the text file use: &#123;{self.format_id}&#125;"
 
