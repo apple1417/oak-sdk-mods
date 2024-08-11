@@ -1,10 +1,9 @@
 # ruff: noqa: D103
 
 import string
-from collections.abc import Callable
-from dataclasses import KW_ONLY, dataclass, field
+from dataclasses import KW_ONLY, dataclass
 from threading import Thread
-from typing import Any, Self
+from typing import Any
 
 from mods_base import SETTINGS_DIR, BoolOption, GroupedOption
 

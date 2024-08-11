@@ -1,5 +1,8 @@
 # Hunt Tracker - Changelog
 
+# v5 - 3.2
+- Updated to fully support SDK version 1.3.
+
 # v4 - 3.2
 - Updated in preparation for some changes in SDK version 1.3.
 

@@ -5,6 +5,7 @@
 #include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
+#include "unrealsdk/unreal/classes/uobject_funcs.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
 #include "unrealsdk/unrealsdk.h"
 

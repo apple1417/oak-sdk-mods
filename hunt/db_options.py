@@ -131,7 +131,7 @@ class MapOption(NestedOption):
             return "Failed to generate description!\n\n" + traceback.format_exc()
 
     @cached_property
-    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102, F811
         try:
             with open_db("r") as cur:
                 cur.execute(
@@ -237,7 +237,7 @@ class PlanetOption(NestedOption):
             return "Failed to generate description!\n\n" + traceback.format_exc()
 
     @cached_property
-    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102, F811
         try:
             with open_db("r") as cur:
                 cur.execute(
@@ -274,7 +274,7 @@ class FullItemListOption(NestedOption):
         del self.children
 
     @cached_property
-    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102
+    def children(self) -> Sequence[BaseOption]:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D102, F811
         try:
             with open_db("r") as cur:
                 cur.execute(
