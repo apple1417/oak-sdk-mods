@@ -2,6 +2,7 @@
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/hook_manager.h"
 #include "unrealsdk/unreal/classes/properties/copyable_property.h"
+#include "unrealsdk/unreal/classes/properties/ubyteproperty.h"
 #include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
@@ -10,8 +11,10 @@
 #include "unrealsdk/unrealsdk.h"
 
 #include "balance.h"
+#include "coop.h"
 #include "drop_queries.h"
 #include "find_drop_request.h"
+#include "hooks.h"
 
 using namespace unrealsdk::unreal;
 
@@ -42,6 +45,8 @@ Once we've detected that a drop is valid, we still want to wait for the user to 
 so we keep a reference to it to double check against on drawing an item card.
 */
 
+// It's safe to use a raw pointer here since we never dereference it, we only check if the pointer
+// we get from a hook (which we know is valid) is contained within it.
 std::unordered_set<UObject*> valid_pickups{};
 
 /*
@@ -80,6 +85,13 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
         return false;
     }
 
+    // This hook still fires sometimes (not every time) on clients, we want to ignore it
+    static auto role_prop = details.obj->Class->find_prop_and_validate<UByteProperty>(L"Role"_fn);
+    static const auto ROLE_Authority = 3;  // NOLINT(readability-identifier-naming)
+    if (details.obj->get<UByteProperty>(role_prop) != ROLE_Authority) {
+        return false;
+    }
+
     static auto bal_comp_prop = details.obj->Class->find_prop_and_validate<UObjectProperty>(
         L"CachedInventoryBalanceComponent"_fn);
     auto bal_comp = details.obj->get<UObjectProperty>(bal_comp_prop);
@@ -102,7 +114,8 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
         return false;
     }
     if (may_balance_world_drop(balance_name)) {
-        valid_pickups.insert(details.obj);
+        mark_valid_drop(details.obj);
+        coop::transmit_valid_pickup_to_clients(details.obj);
     }
 
     // This needs to take the actual balance object, not the possibly expanded one, so that we find
@@ -114,7 +127,8 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
     auto actor_cls = request->first->Class->get_path_name();
 
     if (is_valid_drop(balance_name, actor_cls, request->second)) {
-        valid_pickups.insert(details.obj);
+        mark_valid_drop(details.obj);
+        coop::transmit_valid_pickup_to_clients(details.obj);
     }
 
     return false;
@@ -167,6 +181,7 @@ const constexpr std::wstring_view WORLD_CHANGE_HOOK_FUNC_NAME =
 
 bool world_change_hook(unrealsdk::hook_manager::Details& /*details*/) {
     valid_pickups.clear();
+    coop::reset_state_on_world_change();
     return false;
 }
 
@@ -193,6 +208,10 @@ void disable(void) {
 
 void set_drop_callback(const pyunrealsdk::StaticPyObject&& getter) {
     drop_callback = getter;
+}
+
+void mark_valid_drop(UObject* pickup) {
+    valid_pickups.insert(pickup);
 }
 
 }  // namespace hunt::drops

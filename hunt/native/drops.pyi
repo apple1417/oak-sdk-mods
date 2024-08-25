@@ -30,6 +30,16 @@ def set_drop_callback(callback: Callable[[str], None]) -> Callable[[str], None]:
         The passed callback, so that this may be used as a decorator.
     """
 
+def set_coop_blink_count(num_blinks: int) -> None:
+    """
+    Sets the number of times items will blink during coop transmission.
+
+    Set to 0 to disable coop support.
+
+    Args:
+        num_blinks: The number of times to blink.
+    """
+
 def close_db() -> None:
     """
     Closes the db connection, to allow the file to be replaced.

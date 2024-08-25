@@ -4,6 +4,7 @@
 #include "unrealsdk/unreal/classes/uobject.h"
 
 #include "balance.h"
+#include "coop.h"
 #include "hooks.h"
 #include "sql.h"
 
@@ -45,6 +46,15 @@ PYBIND11_MODULE(drops, m) {
         "    The passed callback, so that this may be used as a decorator.",
         "callback"_a);
 
+    m.def("set_coop_blink_count", hunt::drops::coop::set_blink_count,
+          "Sets the number of times items will blink during coop transmission.\n"
+          "\n"
+          "Set to 0 to disable coop support.\n"
+          "\n"
+          "Args:\n"
+          "    num_blinks: The number of times to blink."
+          "num_blinks"_a);
+
     m.def("close_db", hunt::sql::close_db,
           "Closes the db connection, to allow the file to be replaced.\n"
           "\n"
@@ -64,6 +74,18 @@ PYBIND11_MODULE(drops, m) {
         "    The inventory balance's name.",
         "bal_comp"_a);
 
-    m.def("enable", hunt::drops::enable, "Enables the drop detection hooks.");
-    m.def("disable", hunt::drops::enable, "Disables the drop detection hooks.");
+    m.def(
+        "enable",
+        []() {
+            hunt::drops::enable();
+            hunt::drops::coop::enable();
+        },
+        "Enables the drop detection hooks.");
+    m.def(
+        "disable",
+        []() {
+            hunt::drops::disable();
+            hunt::drops::coop::disable();
+        },
+        "Disables the drop detection hooks.");
 }

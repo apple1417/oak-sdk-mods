@@ -3,6 +3,12 @@
 
 #include "pyunrealsdk/static_py_object.h"
 
+namespace unrealsdk::unreal {
+
+class UObject;
+
+}
+
 namespace hunt::drops {
 
 /**
@@ -21,6 +27,13 @@ void disable(void);
  * @param getter A python callback which takes the balance name of a found drop as it's single arg.
  */
 void set_drop_callback(const pyunrealsdk::StaticPyObject&& getter);
+
+/**
+ * @brief Marks a specific pickup as a valid drop.
+ *
+ * @param pickup The pickup to mark.
+ */
+void mark_valid_drop(unrealsdk::unreal::UObject* pickup);
 
 }  // namespace hunt::drops
 
