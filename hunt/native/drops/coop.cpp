@@ -43,10 +43,10 @@ twice in a row during the same tick does not send any information to the client.
 The other main probelem with using this pair of functions is of course that it visually toggles the
 loot beam. There are  other function pairs that might avoid this, however they all have their own
 downsides too. For example, `InventoryItemPickup::ActivatePickup` and
-`InventoryItemPickup::DectivatePickup` call `InventoryItemPickup::OnRep_IsActive` on the client, but
-risk us leaving the pickup deactivated, meaning you can't pick it up or look at the card. There are
-also several options on `Actor` - but that's a very fundamental base class which will trigger a lot
-of hooks on unrelated objects, which has performance impacts.
+`InventoryItemPickup::DeactivatePickup` call `InventoryItemPickup::OnRep_IsActive` on the client,
+but risk us leaving the pickup deactivated, meaning you can't pick it up or look at the card. There
+are also several options on `Actor` - but that's a very fundamental base class which will trigger a
+lot of hooks on unrelated objects, which has performance impacts.
 
 Instead, we simply accept that the beam will blink for a bit - since it only happens on valid drops
 it's almost a feature.
