@@ -1,6 +1,6 @@
 [project]
 name = "hunt"
-version = "5.3.2"
+version = "6.3.2"
 authors = [{ name = "apple1417" }]
 description = """
 The official Borderlands 3 Hunt Tracker.
@@ -19,3 +19,4 @@ name = "Hunt Tracker"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
 download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/hunt.zip"
 supported_games = ["BL3"]
+coop_support = "RequiresAllPlayers"

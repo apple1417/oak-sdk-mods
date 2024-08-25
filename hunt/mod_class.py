@@ -7,6 +7,7 @@ from bl3_mod_menu import DialogBox, DialogBoxChoice
 from mods_base import (
     ENGINE,
     BaseOption,
+    BoolOption,
     ButtonOption,
     GroupedOption,
     Mod,
@@ -106,54 +107,6 @@ def gen_progression_options() -> Iterator[BaseOption]:
                 ),
             )
 
-        yield NestedOption(
-            "On Screen Display",
-            (
-                ButtonOption(
-                    "Update Now",
-                    description="Forces the displays to update now.",
-                    on_press=lambda _: update_osd(),
-                ),
-                ButtonOption(
-                    "Set Mark",
-                    description=(
-                        "Some stats count since the last time you set a mark. You can set a mark"
-                        " here at any time, to allow you to track these stats over an arbitrary"
-                        " period of time.\n"
-                        "\n"
-                        "For example, you might want to set a mark before starting Arms Race, so"
-                        " that you can track the total amount of SQs it takes you to clear it."
-                    ),
-                    on_press=lambda _: confirm_mark.show(),
-                ),
-                GroupedOption(
-                    "External Text File",
-                    (
-                        ButtonOption(
-                            "Open Template File",
-                            description=(
-                                "Opens the template file, which you can edit to fully customize the"
-                                " display."
-                            ),
-                            on_press=lambda _: os.startfile(TEMPLATE_TEXT_FILE),  # type: ignore  # noqa: S606
-                        ),
-                        ButtonOption(
-                            "Open Output File",
-                            description="Opens the output file, which you should point OBS at.",
-                            on_press=lambda _: os.startfile(OUTPUT_TEXT_FILE),  # type: ignore  # noqa: S606
-                        ),
-                    ),
-                ),
-                osd_option,
-            ),
-            description=(
-                "Settings to help display these, and various other interesting stats, on screen.\n"
-                "\n"
-                "Supports both displaying in-game, or exporting to a text file for more advanced"
-                " customization in OBS."
-            ),
-        )
-
 
 def gen_token_options() -> Iterator[BaseOption]:
     """
@@ -228,6 +181,108 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
     reset_playthrough_dialog.show()
 
 
+@SliderOption(
+    "Loot Beam Blink Duration",
+    20,
+    10,
+    100,
+    is_integer=True,
+    description=(
+        "When the tracker finds a valid drop, it makes the loot beam blink to transmit it to any"
+        " clients. This controls how long it should blink for.\n"
+        "\n"
+        "On bad connections, if clients aren't able to redeem items that the host can, increasing"
+        " this value on both ends might help."
+    ),
+)
+def beam_blink_duration_option(_: SliderOption, duration: float) -> None:  # noqa: D103
+    if coop_enabled_option.value:
+        drops.set_coop_blink_count(int(duration))
+
+
+@BoolOption(
+    "Enabled",
+    True,
+    description="If to enable coop support. When disabled, removes all loot beam blinking.",
+)
+def coop_enabled_option(_: BoolOption, enabled: bool) -> None:  # noqa: D103
+    if enabled:
+        drops.set_coop_blink_count(int(beam_blink_duration_option.value))
+    else:
+        drops.set_coop_blink_count(0)
+
+
+coop_options = GroupedOption("Coop", (coop_enabled_option, beam_blink_duration_option))
+
+
+def gen_extra_options() -> Iterator[BaseOption]:
+    """
+    Generates all the options hidden behind the "Extras" menu.
+
+    Yields:
+        The child options.
+    """
+    yield ButtonOption(
+        "Open Rules",
+        on_press=lambda _: os.startfile("https://apple1417.dev/bl3/hunt"),  # type: ignore  # noqa: S606
+        description=(
+            "<font size='40' color='#FFFFFF'>https://apple1417.dev/bl3/hunt</font>\n"
+            "\n"
+            "Or press this button to open in your browser."
+        ),
+    )
+    yield reset_playthrough_button
+    yield coop_options
+
+    yield GroupedOption(
+        "On Screen Display",
+        (
+            ButtonOption(
+                "Update Now",
+                description="Forces the displays to update now.",
+                on_press=lambda _: update_osd(),
+            ),
+            ButtonOption(
+                "Set Mark",
+                description=(
+                    "Some stats count since the last time you set a mark. You can set a mark"
+                    " here at any time, to allow you to track these stats over an arbitrary"
+                    " period of time.\n"
+                    "\n"
+                    "For example, you might want to set a mark before starting Arms Race, so"
+                    " that you can track the total amount of SQs it takes you to clear it."
+                ),
+                on_press=lambda _: confirm_mark.show(),
+            ),
+            GroupedOption(
+                "External Text File",
+                (
+                    ButtonOption(
+                        "Open Template File",
+                        description=(
+                            "Opens the template file, which you can edit to fully customize the"
+                            " display."
+                        ),
+                        on_press=lambda _: os.startfile(TEMPLATE_TEXT_FILE),  # type: ignore  # noqa: S606
+                    ),
+                    ButtonOption(
+                        "Open Output File",
+                        description="Opens the output file, which you should point OBS at.",
+                        on_press=lambda _: os.startfile(OUTPUT_TEXT_FILE),  # type: ignore  # noqa: S606
+                    ),
+                ),
+            ),
+            osd_option,
+        ),
+        description=(
+            "Settings to help display these, and various other interesting stats, on screen.\n"
+            "\n"
+            "Supports both displaying in-game, or exporting to a text file for more advanced"
+            " customization in OBS."
+        ),
+    )
+
+
 @dataclass
 class HuntTracker(Mod):
     def __post_init__(self) -> None:
@@ -248,16 +303,8 @@ class HuntTracker(Mod):
         try:
             create_item_option.cache_clear()
 
-            yield ButtonOption(
-                "Open Rules",
-                on_press=lambda _: os.startfile("https://apple1417.dev/bl3/hunt"),  # type: ignore  # noqa: S606
-                description=(
-                    "<font size='40' color='#FFFFFF'>https://apple1417.dev/bl3/hunt</font>\n"
-                    "\n"
-                    "Or press this button to open in your browser."
-                ),
-            )
-            yield reset_playthrough_button
+            yield NestedOption("Extras", tuple(gen_extra_options()))
+
             yield GroupedOption("Progression", tuple(gen_progression_options()))
             yield GroupedOption("World Drop Tokens", tuple(gen_token_options()))
 

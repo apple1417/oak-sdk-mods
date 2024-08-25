@@ -55,7 +55,7 @@ it's almost a feature.
 const constexpr auto BLINK_INTERVAL = std::chrono::milliseconds(100);
 const constexpr auto REQUIRED_BLINK_THRESHOLD = 5;
 
-uint32_t total_blink_count = 30;  // NOLINT(readability-magic-numbers)
+uint32_t total_blink_count = 20;  // NOLINT(readability-magic-numbers)
 
 struct HostUpcomingBlink {
     // Need to use weak pointers since we dereference this, and the object might get picked up and

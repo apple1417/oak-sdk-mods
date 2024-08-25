@@ -13,7 +13,7 @@ if True:
 
 from mods_base import SETTINGS_DIR, build_mod
 
-from .mod_class import HuntTracker
+from .mod_class import HuntTracker, coop_options
 from .osd import osd_option
 from .sqs import sq_hook
 from .tokens import (
@@ -42,5 +42,6 @@ mod = build_mod(
     options=[
         redeem_token_option,
         osd_option,
+        coop_options,
     ],
 )
