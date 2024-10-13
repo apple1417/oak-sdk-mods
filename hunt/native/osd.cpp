@@ -69,9 +69,10 @@ union StaticStructs {
 } structs;
 
 bool draw_hud_hook(unrealsdk::hook_manager::Details& details) {
-    BoundFunction{draw_rect_func, details.obj}.call<void>(structs.background_to_draw());
+    BoundFunction{.func = draw_rect_func, .object = details.obj}.call<void>(
+        structs.background_to_draw());
 
-    BoundFunction draw_text{draw_text_func, details.obj};
+    BoundFunction draw_text{.func = draw_text_func, .object = details.obj};
     for (auto& text : structs.text_to_draw()) {
         draw_text.call<void>(text);
     }
@@ -105,7 +106,7 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
     }
     structs.text_to_draw().clear();
 
-    BoundFunction get_text_size{get_text_size_func, details.obj};
+    BoundFunction get_text_size{.func = get_text_size_func, .object = details.obj};
     WrappedStruct args{get_text_size_func};
     args.set<UObjectProperty>(L"Font"_fn, font);
     args.set<UFloatProperty>(L"Scale"_fn, 1.0);
@@ -140,7 +141,8 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
     }
 
     // Add the outer padding for both sides
-    structs.background_to_draw().set<UFloatProperty>(L"ScreenW"_fn, max_width + 2 * OUTER_PADDING);
+    structs.background_to_draw().set<UFloatProperty>(L"ScreenW"_fn,
+                                                     max_width + (2 * OUTER_PADDING));
     // Remove the inner padding from the bottom, and add the outer padding - we already started with
     // the outer padding at the top
     structs.background_to_draw().set<UFloatProperty>(

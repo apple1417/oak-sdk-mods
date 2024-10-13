@@ -12,7 +12,9 @@ if True:
 
     assert __import__("bl3_mod_menu").__version_info__ >= (1, 0), "Please update the SDK"
 
-from mods_base import SETTINGS_DIR, build_mod
+from typing import Any
+
+from mods_base import SETTINGS_DIR, HookType, build_mod
 
 from .mod_class import HuntTracker, coop_options
 from .osd import osd_option
@@ -31,15 +33,17 @@ from . import db, drops  # noqa: F401 # noqa: F401  # pyright: ignore[reportUnus
 __version__: str
 __version_info__: tuple[int, ...]
 
+hooks: list[HookType[Any]] = [
+    mission_complete_hook,
+    item_inspect_end_hook,
+    item_inspect_start_hook,
+    sq_hook,
+]
+
 mod = build_mod(
     cls=HuntTracker,
     settings_file=SETTINGS_DIR / "hunt" / "hunt.json",
-    hooks=[
-        mission_complete_hook,
-        item_inspect_end_hook,
-        item_inspect_start_hook,
-        sq_hook,
-    ],
+    hooks=hooks,
     options=[
         redeem_token_option,
         osd_option,

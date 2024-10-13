@@ -9,6 +9,8 @@
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
 #include "unrealsdk/unrealsdk.h"
 
+#include "find_drop_request.h"
+
 using namespace unrealsdk::unreal;
 
 namespace hunt::drops {

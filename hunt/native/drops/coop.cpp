@@ -8,6 +8,7 @@
 #include "unrealsdk/unreal/wrappers/weak_pointer.h"
 #include "unrealsdk/unrealsdk.h"
 
+#include "coop.h"
 #include "hooks.h"
 
 using namespace unrealsdk::unreal;
@@ -123,14 +124,15 @@ void blinky_thread(void) {
                     // Remove anything which's used all blinks
                     if (entry.remaining_blinks == 0) {
                         // Make sure the beam's definitely on now
-                        BoundFunction{set_no_loot_beam_func, obj}.call<void, UBoolProperty>(false);
+                        BoundFunction{.func = set_no_loot_beam_func, .object = obj}
+                            .call<void, UBoolProperty>(false);
                         return true;
                     }
                     entry.remaining_blinks--;
 
                     // Toggle the beam, and keep this entry
-                    BoundFunction{set_no_loot_beam_func, obj}.call<void, UBoolProperty>(
-                        !obj->get<UBoolProperty>(no_loot_beam_prop));
+                    BoundFunction{.func = set_no_loot_beam_func, .object = obj}
+                        .call<void, UBoolProperty>(!obj->get<UBoolProperty>(no_loot_beam_prop));
                     return false;
                 });
 

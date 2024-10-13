@@ -1,5 +1,6 @@
 #include "pyunrealsdk/pch.h"
 
+#include "drop_queries.h"
 #include "sql.h"
 
 namespace {
