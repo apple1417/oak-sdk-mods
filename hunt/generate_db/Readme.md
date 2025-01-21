@@ -14,7 +14,7 @@ it out with your database to create a custom "Skin Hunt" or "Redux Hunt", withou
 any code. The database is designed in such a way it could even be ported to other games, though of
 course this makes it more likely to run into edge cases requiring code tweaks.
  
-Unfortuately, as the tracker has grown, the generation script has become into an unweildy monolith,
+Unfortunately, as the tracker has grown, the generation script has become into an unwieldy monolith,
 with lots of hardcoded edge cases specifically for the primary ruleset - so if you're trying to make
 your own, you probably won't be able to pull to much from it.
 

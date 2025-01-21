@@ -1291,12 +1291,12 @@ if __name__ == "__main__":
                 FROM
                     Items as i
                 WHERE
-                    i.ID in ({','.join(['?'] * len(map_item_ids))})
+                    i.ID in ({",".join(["?"] * len(map_item_ids))})
                 ORDER BY
                     SUBSTR(Description,
                            INSTR(Description, 'Collectable from:')),
                     i.Name
-                """,
+                """,  # noqa: S608
                 (planet_id, planet.name, map_id, map_name, world_name, *map_item_ids),
             )
 
