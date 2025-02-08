@@ -2,21 +2,25 @@ if True:
     assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
 
 from argparse import Namespace
-from typing import Any
+from typing import Any, TextIO
 
 import unrealsdk
 from mods_base import build_mod, command
-from unrealsdk.unreal import WrappedArray
+from unrealsdk.unreal import WrappedArray, UObject
 
 __version__: str
 __version_info__: tuple[int, ...]
 
 
-@command(splitter=lambda line: [line.strip()])
-def obj_dump(args: Namespace) -> None:  # noqa: D103
-    obj = unrealsdk.find_object("Object", args.obj)
-
-    print(f"==== Dump for object {obj} ====")
+def dump_object(obj: UObject, file: TextIO | None = None):
+    """
+    args:
+        obj: the UObject you want to dump.
+    
+    optional:
+        file: output the dump to a specified file instead of the console.
+    """
+    print(f"==== Dump for object {obj} ====", file=file)
     for prop in obj.Class._properties():
         try:
             val = obj._get_field(prop)
@@ -24,16 +28,22 @@ def obj_dump(args: Namespace) -> None:  # noqa: D103
             if isinstance(val, WrappedArray):
                 arr: WrappedArray[Any] = val
                 if len(arr) == 0:
-                    print(f"{prop.Name}: []")
+                    print(f"{prop.Name}: []", file=file)
                     continue
 
                 for idx, entry in enumerate(arr):
-                    print(f"{prop.Name}[{idx}]: {entry!r}")
+                    print(f"{prop.Name}[{idx}]: {entry!r}", file=file)
                 continue
 
-            print(f"{prop.Name}: {val!r}")
+            print(f"{prop.Name}: {val!r}", file=file)
         except Exception:  # noqa: BLE001
-            print(f"{prop.Name}: <unknown {prop.Class.Name}>")
+            print(f"{prop.Name}: <unknown {prop.Class.Name}>", file=file)
+
+
+
+@command(splitter=lambda line: [line.strip()])
+def obj_dump(args: Namespace) -> None:  # noqa: D103
+    dump_object(unrealsdk.find_object("Object", args.obj))
 
 
 obj_dump.add_argument("obj", help="The object to dump. Should not include class.")
