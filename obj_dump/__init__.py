@@ -6,19 +6,19 @@ from typing import Any, TextIO
 
 import unrealsdk
 from mods_base import build_mod, command
-from unrealsdk.unreal import WrappedArray, UObject
+from unrealsdk.unreal import UObject, WrappedArray
 
 __version__: str
 __version_info__: tuple[int, ...]
 
 
-def dump_object(obj: UObject, file: TextIO | None = None):
+def dump_object(obj: UObject, file: TextIO | None = None) -> None:
     """
-    args:
-        obj: the UObject you want to dump.
-    
-    optional:
-        file: output the dump to a specified file instead of the console.
+    Dumps an object.
+
+    Args:
+        obj: The object to dump.
+        file: An optional file to write to, instead of console.
     """
     print(f"==== Dump for object {obj} ====", file=file)
     for prop in obj.Class._properties():
@@ -38,7 +38,6 @@ def dump_object(obj: UObject, file: TextIO | None = None):
             print(f"{prop.Name}: {val!r}", file=file)
         except Exception:  # noqa: BLE001
             print(f"{prop.Name}: <unknown {prop.Class.Name}>", file=file)
-
 
 
 @command(splitter=lambda line: [line.strip()])
