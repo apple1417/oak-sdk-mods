@@ -21,19 +21,19 @@ std::optional<std::pair<UObject*, std::optional<std::wstring>>> find_matching_dr
         unrealsdk::find_object(L"OakGameEngine"_fn, L"/Engine/Transient.OakGameEngine_0");
 
     static const auto game_instance_prop =
-        engine->Class->find_prop_and_validate<UObjectProperty>(L"GameInstance"_fn);
+        engine->Class()->find_prop_and_validate<UObjectProperty>(L"GameInstance"_fn);
     auto game_instance = engine->get<UObjectProperty>(game_instance_prop);
 
     static const auto oak_singletons_prop =
-        game_instance->Class->find_prop_and_validate<UObjectProperty>(L"OakSingletons"_fn);
+        game_instance->Class()->find_prop_and_validate<UObjectProperty>(L"OakSingletons"_fn);
     auto oak_singletons = game_instance->get<UObjectProperty>(oak_singletons_prop);
 
     static const auto spawn_loot_manager_prop =
-        oak_singletons->Class->find_prop_and_validate<UObjectProperty>(L"SpawnLootManager"_fn);
+        oak_singletons->Class()->find_prop_and_validate<UObjectProperty>(L"SpawnLootManager"_fn);
     auto spawn_loot_manager = oak_singletons->get<UObjectProperty>(spawn_loot_manager_prop);
 
     static const auto dropped_pickup_requests_prop =
-        spawn_loot_manager->Class->find_prop_and_validate<UArrayProperty>(
+        spawn_loot_manager->Class()->find_prop_and_validate<UArrayProperty>(
             L"DroppedPickupRequests"_fn);
     auto dropped_pickup_requests =
         spawn_loot_manager->get<UArrayProperty>(dropped_pickup_requests_prop);

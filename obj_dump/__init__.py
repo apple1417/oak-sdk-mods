@@ -26,7 +26,7 @@ def dump_object(obj: UObject, file: TextIO | None = None) -> None:
             val = obj._get_field(prop)
 
             if isinstance(val, WrappedArray):
-                arr: WrappedArray[Any] = val
+                arr: WrappedArray[Any] = val  # pyright: ignore[reportUnknownVariableType]
                 if len(arr) == 0:
                     print(f"{prop.Name}: []", file=file)
                     continue

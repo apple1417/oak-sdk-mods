@@ -1,6 +1,7 @@
 [tool.pyright]
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 typeCheckingMode = "strict"
+pythonPlatform = "Windows"
 
 reportMissingModuleSource = false
 
@@ -10,20 +11,14 @@ extraPaths = [
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 line-length = 100
 exclude = [".*"]
 
 [tool.ruff.lint]
+# Last time rules scrutinised: ruff 0.11.0 / 2025-03-20
 select = [
-    "F",
-    "W",
-    "E",
-    "C90",
-    "I",
-    "N",
-    "D",
-    "UP",
+    "ERA",
     "YTT",
     "ANN",
     "ASYNC",
@@ -35,34 +30,51 @@ select = [
     "C4",
     "DTZ",
     "T10",
+    "FIX",
     "FA",
+    "INT",
     "ISC",
     "ICN",
     "LOG",
     "G",
     "PIE",
+    "T20",
     "PYI",
     "Q",
     "RSE",
     "RET",
-    "SLOT",
     "SIM",
+    "SLOT",
     "TID",
-    "TCH",
-    "INT",
+    "TD",
+    "TC",
     "ARG",
     "PTH",
-    "TD",
-    "FIX",
-    "ERA",
+    "FLY",
+    "I",
+    "C90",
+    "N",
+    "PERF",
+    "E",
+    "W",
+    "D",
+    "F",
     "PGH",
     "PL",
-    "FLY",
-    "PERF",
+    "UP",
     "FURB",
     "RUF",
 ]
 ignore = [
+    "ANN401",
+    "S101",
+    "S603",
+    "S607",
+    "PYI011",
+    "PYI021",
+    "PYI029",
+    "PYI044",
+    "TC006",
     "D100",
     "D101",
     "D104",
@@ -80,16 +92,6 @@ ignore = [
     "D410",
     "D411",
     "D413",
-    "ANN101",
-    "ANN102",
-    "ANN401",
-    "S101",
-    "S603",
-    "S607",
-    "PYI011",
-    "PYI021",
-    "PYI029",
-    "PYI044",
     "PGH003",
     "PLR0904",
     "PLR0911",
@@ -100,7 +102,8 @@ ignore = [
     "PLW0603",
     "PLW2901",
     "FURB140",
+    "FURB167",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"*.pyi" = ["D418", "A002", "A003"]
+"*.pyi" = ["A002", "A003", "D418"]

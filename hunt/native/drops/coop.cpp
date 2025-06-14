@@ -117,9 +117,9 @@ void blinky_thread(void) {
                     }
 
                     static auto set_no_loot_beam_func =
-                        obj->Class->find_func_and_validate(L"SetNoLootBeam"_fn);
+                        obj->Class()->find_func_and_validate(L"SetNoLootBeam"_fn);
                     static auto no_loot_beam_prop =
-                        obj->Class->find_prop_and_validate<UBoolProperty>(L"bNoLootBeam"_fn);
+                        obj->Class()->find_prop_and_validate<UBoolProperty>(L"bNoLootBeam"_fn);
 
                     // Remove anything which's used all blinks
                     if (entry.remaining_blinks == 0) {

@@ -54,8 +54,8 @@ ExpandableBalanceDataMap load_expandable_balance_data(void) {
             break;
         }
         if (res != SQLITE_ROW) {
-            throw std::runtime_error(unrealsdk::fmt::format(
-                "Failed to load expandable balance data: {}", sqlite3_errstr(res)));
+            throw std::runtime_error(
+                std::format("Failed to load expandable balance data: {}", sqlite3_errstr(res)));
         }
 
         // Sqlite docs say we must call text16 before bytes16 to make sure that type conversions
@@ -93,9 +93,9 @@ std::wstring get_inventory_balance_name(InventoryBalanceStateComponent* bal_comp
     static const ExpandableBalanceDataMap expandable_balance_data = load_expandable_balance_data();
 
     static auto inv_bal_prop =
-        bal_comp->Class->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
+        bal_comp->Class()->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
     static auto part_list_prop =
-        bal_comp->Class->find_prop_and_validate<UArrayProperty>(L"PartList"_fn);
+        bal_comp->Class()->find_prop_and_validate<UArrayProperty>(L"PartList"_fn);
 
     auto bal_obj = bal_comp->get<UObjectProperty>(inv_bal_prop);
 

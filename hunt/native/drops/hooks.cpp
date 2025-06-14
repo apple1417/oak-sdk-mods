@@ -78,7 +78,7 @@ const constexpr std::wstring_view DROP_HOOK_FUNC_NAME =
 
 bool drop_hook(unrealsdk::hook_manager::Details& details) {
     static auto pickup_category_prop =
-        details.obj->Class->find_prop_and_validate<UObjectProperty>(L"PickupCategory"_fn);
+        details.obj->Class()->find_prop_and_validate<UObjectProperty>(L"PickupCategory"_fn);
 
     if (INVENTORY_CATEGORIES_TO_IGNORE.contains(
             details.obj->get<UObjectProperty>(pickup_category_prop))) {
@@ -86,13 +86,13 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
     }
 
     // This hook still fires sometimes (not every time) on clients, we want to ignore it
-    static auto role_prop = details.obj->Class->find_prop_and_validate<UByteProperty>(L"Role"_fn);
+    static auto role_prop = details.obj->Class()->find_prop_and_validate<UByteProperty>(L"Role"_fn);
     static const auto ROLE_Authority = 3;  // NOLINT(readability-identifier-naming)
     if (details.obj->get<UByteProperty>(role_prop) != ROLE_Authority) {
         return false;
     }
 
-    static auto bal_comp_prop = details.obj->Class->find_prop_and_validate<UObjectProperty>(
+    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<UObjectProperty>(
         L"CachedInventoryBalanceComponent"_fn);
     auto bal_comp = details.obj->get<UObjectProperty>(bal_comp_prop);
     if (bal_comp == nullptr) {
@@ -100,7 +100,7 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
     }
 
     static auto balance_prop =
-        bal_comp->Class->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
+        bal_comp->Class()->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
     auto balance = bal_comp->get<UObjectProperty>(balance_prop);
     // Not sure if this is a real thing that can happen anymore, but going to check early to skip
     // more expensive checks just in case
@@ -124,7 +124,7 @@ bool drop_hook(unrealsdk::hook_manager::Details& details) {
     if (!request) {
         return false;
     }
-    auto actor_cls = request->first->Class->get_path_name();
+    auto actor_cls = request->first->Class()->get_path_name();
 
     if (is_valid_drop(balance_name, actor_cls, request->second)) {
         mark_valid_drop(details.obj);
@@ -162,7 +162,7 @@ bool itemcard_hook(unrealsdk::hook_manager::Details& details) {
         return false;
     }
 
-    static auto bal_comp_prop = details.obj->Class->find_prop_and_validate<UObjectProperty>(
+    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<UObjectProperty>(
         L"CachedInventoryBalanceComponent"_fn);
     auto balance_name =
         balance::get_inventory_balance_name(details.obj->get<UObjectProperty>(bal_comp_prop));
