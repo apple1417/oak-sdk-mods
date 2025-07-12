@@ -3,21 +3,31 @@ if True:
     assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
 
 from typing import Any
-
+from ui_utils import show_hud_message#type:ignore
 import unrealsdk
 from mods_base import ENGINE, BoolOption, EInputEvent, build_mod, hook, keybind
-from unrealsdk.hooks import Block, Type
+from unrealsdk.hooks import Type
+from threading import Timer
 
 __version__: str
 __version_info__: tuple[int, ...]
 
 
-@keybind("Skip Dialog")
-def skip_dialog() -> None:
+def skip_dialog():
     for dialog in unrealsdk.find_all("GbxDialogComponent", exact=False):
         thread_id = dialog.CurrentPerformance.DialogThreadID
         if thread_id > 0:
             dialog.StopPerformance(thread_id, True)
+
+
+def skip_dialog_timer(dialog, thread_id):
+    if thread_id > 0:
+        dialog.StopPerformance(thread_id, True)
+
+
+@keybind("Skip Dialog")
+def skip_dialog_keybind() -> None:
+    skip_dialog()
 
 
 auto_skip = BoolOption(
@@ -30,10 +40,31 @@ auto_skip = BoolOption(
     ),
 )
 
+@keybind("Toggle Auto Skip")
+def ToggleAutoSkip():
+    #quickly toggles the auto skipping
+    auto_skip.value = not auto_skip.value#not sure how to save this
+    MessageString = "On" if auto_skip.value else "Off"
+    show_hud_message("Dialog Skipper", f"Auto Dialgue Skip: {MessageString}")
+    if auto_skip.value:
+        skip_dialog()
 
-@hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.PRE)
-def dialog_start_performance(*_: Any) -> None | type[Block]:
-    return Block if auto_skip.value else None
+
+@hook("/Script/OakGame.OakGameInstance:ServerPartyListenToECHOData", Type.POST)
+def BindEchoLogInitialPlayFinished(*_: Any) -> Any:
+    #skips things like the typhoon pillars
+    if auto_skip.value:
+        new_timer = Timer(0.05, skip_dialog)
+        new_timer.start()
+
+
+@hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.POST)
+def dialog_start_performance(obj, args,*_: Any) -> Any:
+    #fixes 90% of the soft locks
+    if auto_skip.value:
+        delay = args.Performance.OutputDelay + 0.05
+        new_timer = Timer(delay, skip_dialog_timer, [obj, args.DialogThreadID])
+        new_timer.start()
 
 
 # This is basically stolen straight from ABCD
