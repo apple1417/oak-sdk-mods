@@ -1,5 +1,3 @@
-# ruff: noqa: D103
-
 if True:
     assert __import__("mods_base").__version_info__ >= (1, 4), "Please update the SDK"
     assert __import__("pyunrealsdk").__version_info__ >= (1, 3, 0), "Please update the SDK"

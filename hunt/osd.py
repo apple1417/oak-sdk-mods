@@ -410,7 +410,7 @@ def update_osd() -> None:
 
 def _update_osd_inner() -> None:
     # Can't put this any higher due to circular imports
-    from . import mod
+    from . import mod  # noqa: PLC0415
 
     if not mod.is_enabled:
         osd.hide()
