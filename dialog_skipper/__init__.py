@@ -3,21 +3,27 @@ if True:
     assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
 
 from typing import Any
-
+from ui_utils import show_hud_message
 import unrealsdk
 from mods_base import ENGINE, BoolOption, EInputEvent, build_mod, hook, keybind
-from unrealsdk.hooks import Block, Type
+from unrealsdk.unreal import UObject, WrappedStruct
+from unrealsdk.hooks import Type
+from threading import Timer
 
 __version__: str
 __version_info__: tuple[int, ...]
 
 
-@keybind("Skip Dialog")
 def skip_dialog() -> None:
     for dialog in unrealsdk.find_all("GbxDialogComponent", exact=False):
         thread_id = dialog.CurrentPerformance.DialogThreadID
         if thread_id > 0:
             dialog.StopPerformance(thread_id, True)
+            
+
+@keybind("Skip Dialog")
+def skip_dialog_keybind() -> None:
+    skip_dialog()
 
 
 auto_skip = BoolOption(
@@ -30,10 +36,32 @@ auto_skip = BoolOption(
     ),
 )
 
+@keybind("Toggle Auto Skip")
+def ToggleAutoSkip() -> None:
+    auto_skip.value = not auto_skip.value
+    mod.save_settings
+    MessageString = "On" if auto_skip.value else "Off"
+    show_hud_message("Dialog Skipper", f"Auto Dialog Skip: {MessageString}")
+    if auto_skip.value:
+        skip_dialog()
 
-@hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.PRE)
-def dialog_start_performance(*_: Any) -> None | type[Block]:
-    return Block if auto_skip.value else None
+
+@hook("/Script/OakGame.OakGameInstance:ServerPartyListenToECHOData", Type.POST)
+def BindEchoLogInitialPlayFinished(*_: Any) -> Any:
+    if auto_skip.value:
+        new_timer = Timer(0.05, skip_dialog)
+        new_timer.start()
+
+
+def skip_dialog_timer(dialog:UObject, thread_id:int) -> None:
+    dialog.StopPerformance(thread_id, True)
+
+@hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.POST)
+def dialog_start_performance(obj:UObject, args:WrappedStruct,*_: Any) -> Any:
+    if auto_skip.value and args.DialogThreadID > 0:
+        delay = args.Performance.OutputDelay + 0.05
+        new_timer = Timer(delay, skip_dialog_timer, [obj, args.DialogThreadID])
+        new_timer.start()
 
 
 # This is basically stolen straight from ABCD
@@ -69,4 +97,4 @@ def fast_forward_hold(event: EInputEvent) -> None:
     set_time_dialation(ENGINE.GameViewport.World, dialation)
 
 
-build_mod()
+mod = build_mod()
