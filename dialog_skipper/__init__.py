@@ -19,12 +19,7 @@ def skip_dialog() -> None:
         thread_id = dialog.CurrentPerformance.DialogThreadID
         if thread_id > 0:
             dialog.StopPerformance(thread_id, True)
-
-
-def skip_dialog_timer(dialog:UObject, thread_id:int) -> None:
-    if thread_id > 0:
-        dialog.StopPerformance(thread_id, True)
-
+            
 
 @keybind("Skip Dialog")
 def skip_dialog_keybind() -> None:
@@ -43,26 +38,27 @@ auto_skip = BoolOption(
 
 @keybind("Toggle Auto Skip")
 def ToggleAutoSkip() -> None:
-    #quickly toggles the auto skipping
-    auto_skip.value = not auto_skip.value#not sure how to save this
+    auto_skip.value = not auto_skip.value
+    mod.save_settings
     MessageString = "On" if auto_skip.value else "Off"
-    show_hud_message("Dialog Skipper", f"Auto Dialgue Skip: {MessageString}")
+    show_hud_message("Dialog Skipper", f"Auto Dialog Skip: {MessageString}")
     if auto_skip.value:
         skip_dialog()
 
 
 @hook("/Script/OakGame.OakGameInstance:ServerPartyListenToECHOData", Type.POST)
 def BindEchoLogInitialPlayFinished(*_: Any) -> Any:
-    #skips things like the typhoon pillars
     if auto_skip.value:
         new_timer = Timer(0.05, skip_dialog)
         new_timer.start()
 
 
+def skip_dialog_timer(dialog:UObject, thread_id:int) -> None:
+    dialog.StopPerformance(thread_id, True)
+
 @hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.POST)
 def dialog_start_performance(obj:UObject, args:WrappedStruct,*_: Any) -> Any:
-    #fixes 90% of the soft locks
-    if auto_skip.value:
+    if auto_skip.value and args.DialogThreadID > 0:
         delay = args.Performance.OutputDelay + 0.05
         new_timer = Timer(delay, skip_dialog_timer, [obj, args.DialogThreadID])
         new_timer.start()
@@ -101,4 +97,4 @@ def fast_forward_hold(event: EInputEvent) -> None:
     set_time_dialation(ENGINE.GameViewport.World, dialation)
 
 
-build_mod()
+mod = build_mod()
