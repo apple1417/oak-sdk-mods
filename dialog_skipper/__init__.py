@@ -3,7 +3,7 @@ if True:
     assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
 
 from typing import Any
-from ui_utils import show_hud_message#type:ignore
+from ui_utils import show_hud_message
 import unrealsdk
 from mods_base import ENGINE, BoolOption, EInputEvent, build_mod, hook, keybind
 from unrealsdk.hooks import Type
