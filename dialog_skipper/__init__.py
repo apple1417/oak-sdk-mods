@@ -6,6 +6,7 @@ from typing import Any
 from ui_utils import show_hud_message
 import unrealsdk
 from mods_base import ENGINE, BoolOption, EInputEvent, build_mod, hook, keybind
+from unrealsdk.unreal import UObject, WrappedStruct
 from unrealsdk.hooks import Type
 from threading import Timer
 
@@ -13,14 +14,14 @@ __version__: str
 __version_info__: tuple[int, ...]
 
 
-def skip_dialog():
+def skip_dialog() -> None:
     for dialog in unrealsdk.find_all("GbxDialogComponent", exact=False):
         thread_id = dialog.CurrentPerformance.DialogThreadID
         if thread_id > 0:
             dialog.StopPerformance(thread_id, True)
 
 
-def skip_dialog_timer(dialog, thread_id):
+def skip_dialog_timer(dialog:UObject, thread_id:int) -> None:
     if thread_id > 0:
         dialog.StopPerformance(thread_id, True)
 
@@ -41,7 +42,7 @@ auto_skip = BoolOption(
 )
 
 @keybind("Toggle Auto Skip")
-def ToggleAutoSkip():
+def ToggleAutoSkip() -> None:
     #quickly toggles the auto skipping
     auto_skip.value = not auto_skip.value#not sure how to save this
     MessageString = "On" if auto_skip.value else "Off"
@@ -59,7 +60,7 @@ def BindEchoLogInitialPlayFinished(*_: Any) -> Any:
 
 
 @hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.POST)
-def dialog_start_performance(obj, args,*_: Any) -> Any:
+def dialog_start_performance(obj:UObject, args:WrappedStruct,*_: Any) -> Any:
     #fixes 90% of the soft locks
     if auto_skip.value:
         delay = args.Performance.OutputDelay + 0.05
