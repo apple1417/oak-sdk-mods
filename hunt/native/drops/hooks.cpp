@@ -1,12 +1,12 @@
 #include "pyunrealsdk/pch.h"
 #include "pyunrealsdk/static_py_object.h"
 #include "unrealsdk/hook_manager.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
-#include "unrealsdk/unreal/classes/properties/ubyteproperty.h"
-#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
+#include "unrealsdk/unreal/properties/copyable_property.h"
+#include "unrealsdk/unreal/properties/zbyteproperty.h"
+#include "unrealsdk/unreal/properties/zobjectproperty.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
 #include "unrealsdk/unrealsdk.h"
 
@@ -78,30 +78,30 @@ const constexpr std::wstring_view DROP_HOOK_FUNC_NAME =
 
 bool drop_hook(unrealsdk::hook_manager::Details& details) {
     static auto pickup_category_prop =
-        details.obj->Class()->find_prop_and_validate<UObjectProperty>(L"PickupCategory"_fn);
+        details.obj->Class()->find_prop_and_validate<ZObjectProperty>(L"PickupCategory"_fn);
 
     if (INVENTORY_CATEGORIES_TO_IGNORE.contains(
-            details.obj->get<UObjectProperty>(pickup_category_prop))) {
+            details.obj->get<ZObjectProperty>(pickup_category_prop))) {
         return false;
     }
 
     // This hook still fires sometimes (not every time) on clients, we want to ignore it
-    static auto role_prop = details.obj->Class()->find_prop_and_validate<UByteProperty>(L"Role"_fn);
+    static auto role_prop = details.obj->Class()->find_prop_and_validate<ZByteProperty>(L"Role"_fn);
     static const auto ROLE_Authority = 3;  // NOLINT(readability-identifier-naming)
-    if (details.obj->get<UByteProperty>(role_prop) != ROLE_Authority) {
+    if (details.obj->get<ZByteProperty>(role_prop) != ROLE_Authority) {
         return false;
     }
 
-    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<UObjectProperty>(
+    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<ZObjectProperty>(
         L"CachedInventoryBalanceComponent"_fn);
-    auto bal_comp = details.obj->get<UObjectProperty>(bal_comp_prop);
+    auto bal_comp = details.obj->get<ZObjectProperty>(bal_comp_prop);
     if (bal_comp == nullptr) {
         return false;
     }
 
     static auto balance_prop =
-        bal_comp->Class()->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
-    auto balance = bal_comp->get<UObjectProperty>(balance_prop);
+        bal_comp->Class()->find_prop_and_validate<ZObjectProperty>(L"InventoryBalanceData"_fn);
+    auto balance = bal_comp->get<ZObjectProperty>(balance_prop);
     // Not sure if this is a real thing that can happen anymore, but going to check early to skip
     // more expensive checks just in case
     if (balance == nullptr) {
@@ -150,9 +150,9 @@ bool itemcard_hook(unrealsdk::hook_manager::Details& details) {
     const constexpr auto min_itemcard_distance = 450;
 
     static auto new_distance_prop =
-        details.args->type->find_prop_and_validate<UFloatProperty>(L"NewUsableDistanceAway"_fn);
+        details.args->type->find_prop_and_validate<ZFloatProperty>(L"NewUsableDistanceAway"_fn);
 
-    if (details.args->get<UFloatProperty>(new_distance_prop) > min_itemcard_distance) {
+    if (details.args->get<ZFloatProperty>(new_distance_prop) > min_itemcard_distance) {
         // Not viewing the full item card
         return false;
     }
@@ -162,10 +162,10 @@ bool itemcard_hook(unrealsdk::hook_manager::Details& details) {
         return false;
     }
 
-    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<UObjectProperty>(
+    static auto bal_comp_prop = details.obj->Class()->find_prop_and_validate<ZObjectProperty>(
         L"CachedInventoryBalanceComponent"_fn);
     auto balance_name =
-        balance::get_inventory_balance_name(details.obj->get<UObjectProperty>(bal_comp_prop));
+        balance::get_inventory_balance_name(details.obj->get<ZObjectProperty>(bal_comp_prop));
 
     if (!drop_callback) {
         return false;

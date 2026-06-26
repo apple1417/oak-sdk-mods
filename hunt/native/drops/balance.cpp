@@ -1,9 +1,9 @@
 #include "pyunrealsdk/pch.h"
-#include "unrealsdk/unreal/classes/properties/uarrayproperty.h"
-#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
+#include "unrealsdk/unreal/properties/zarrayproperty.h"
+#include "unrealsdk/unreal/properties/zobjectproperty.h"
 #include "unrealsdk/unrealsdk.h"
 
 #include "balance.h"
@@ -93,18 +93,18 @@ std::wstring get_inventory_balance_name(InventoryBalanceStateComponent* bal_comp
     static const ExpandableBalanceDataMap expandable_balance_data = load_expandable_balance_data();
 
     static auto inv_bal_prop =
-        bal_comp->Class()->find_prop_and_validate<UObjectProperty>(L"InventoryBalanceData"_fn);
+        bal_comp->Class()->find_prop_and_validate<ZObjectProperty>(L"InventoryBalanceData"_fn);
     static auto part_list_prop =
-        bal_comp->Class()->find_prop_and_validate<UArrayProperty>(L"PartList"_fn);
+        bal_comp->Class()->find_prop_and_validate<ZArrayProperty>(L"PartList"_fn);
 
-    auto bal_obj = bal_comp->get<UObjectProperty>(inv_bal_prop);
+    auto bal_obj = bal_comp->get<ZObjectProperty>(inv_bal_prop);
 
     if (expandable_balance_data.contains(bal_obj)) {
         const auto& part_mappings = expandable_balance_data.at(bal_obj);
 
-        auto arr = bal_comp->get<UArrayProperty>(part_list_prop);
+        auto arr = bal_comp->get<ZArrayProperty>(part_list_prop);
         for (size_t idx = 0; idx < arr.size(); idx++) {
-            auto part = arr.get_at<UObjectProperty>(idx);
+            auto part = arr.get_at<ZObjectProperty>(idx);
 
             if (part_mappings.contains(part)) {
                 return part_mappings.at(part);

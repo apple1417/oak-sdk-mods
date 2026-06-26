@@ -2,12 +2,12 @@
 #include "unrealsdk/hook_manager.h"
 #include "unrealsdk/unreal/cast.h"
 #include "unrealsdk/unreal/class_name.h"
-#include "unrealsdk/unreal/classes/properties/copyable_property.h"
-#include "unrealsdk/unreal/classes/properties/uobjectproperty.h"
-#include "unrealsdk/unreal/classes/properties/ustrproperty.h"
-#include "unrealsdk/unreal/classes/properties/ustructproperty.h"
 #include "unrealsdk/unreal/classes/ufunction.h"
 #include "unrealsdk/unreal/classes/uobject.h"
+#include "unrealsdk/unreal/properties/copyable_property.h"
+#include "unrealsdk/unreal/properties/zobjectproperty.h"
+#include "unrealsdk/unreal/properties/zstrproperty.h"
+#include "unrealsdk/unreal/properties/zstructproperty.h"
 #include "unrealsdk/unreal/wrappers/bound_function.h"
 #include "unrealsdk/unreal/wrappers/wrapped_struct.h"
 
@@ -108,44 +108,44 @@ bool update_data_hook(unrealsdk::hook_manager::Details& details) {
 
     BoundFunction get_text_size{.func = get_text_size_func, .object = details.obj};
     WrappedStruct args{get_text_size_func};
-    args.set<UObjectProperty>(L"Font"_fn, font);
-    args.set<UFloatProperty>(L"Scale"_fn, 1.0);
+    args.set<ZObjectProperty>(L"Font"_fn, font);
+    args.set<ZFloatProperty>(L"Scale"_fn, 1.0);
 
     float max_width = 0;
     float total_height = OUTER_PADDING;
 
     for (const auto& line : pending_lines_to_draw) {
-        args.set<UStrProperty>(L"text"_fn, line);
+        args.set<ZStrProperty>(L"text"_fn, line);
         get_text_size.call<void>(args);
 
-        const float width = args.get<UFloatProperty>(L"OutWidth"_fn);
-        const float height = args.get<UFloatProperty>(L"OutHeight"_fn);
+        const float width = args.get<ZFloatProperty>(L"OutWidth"_fn);
+        const float height = args.get<ZFloatProperty>(L"OutHeight"_fn);
 
         structs.text_to_draw().emplace_back(draw_text_func);
         auto& text_args = structs.text_to_draw().back();
 
-        text_args.set<UStrProperty>(L"text"_fn, line);
-        text_args.set<UFloatProperty>(L"ScreenX"_fn, OUTER_PADDING);
-        text_args.set<UFloatProperty>(L"ScreenY"_fn, total_height);
-        text_args.set<UObjectProperty>(L"Font"_fn, font);
-        text_args.set<UFloatProperty>(L"Scale"_fn, 1.0);
+        text_args.set<ZStrProperty>(L"text"_fn, line);
+        text_args.set<ZFloatProperty>(L"ScreenX"_fn, OUTER_PADDING);
+        text_args.set<ZFloatProperty>(L"ScreenY"_fn, total_height);
+        text_args.set<ZObjectProperty>(L"Font"_fn, font);
+        text_args.set<ZFloatProperty>(L"Scale"_fn, 1.0);
 
-        auto text_colour = text_args.get<UStructProperty>(L"TextColor"_fn);
-        text_colour.set<UFloatProperty>(L"R"_fn, 1.0);
-        text_colour.set<UFloatProperty>(L"G"_fn, 1.0);
-        text_colour.set<UFloatProperty>(L"B"_fn, 1.0);
-        text_colour.set<UFloatProperty>(L"A"_fn, 1.0);
+        auto text_colour = text_args.get<ZStructProperty>(L"TextColor"_fn);
+        text_colour.set<ZFloatProperty>(L"R"_fn, 1.0);
+        text_colour.set<ZFloatProperty>(L"G"_fn, 1.0);
+        text_colour.set<ZFloatProperty>(L"B"_fn, 1.0);
+        text_colour.set<ZFloatProperty>(L"A"_fn, 1.0);
 
         total_height += height + INTER_LINE_PADDING;
         max_width = std::max(width, max_width);
     }
 
     // Add the outer padding for both sides
-    structs.background_to_draw().set<UFloatProperty>(L"ScreenW"_fn,
+    structs.background_to_draw().set<ZFloatProperty>(L"ScreenW"_fn,
                                                      max_width + (2 * OUTER_PADDING));
     // Remove the inner padding from the bottom, and add the outer padding - we already started with
     // the outer padding at the top
-    structs.background_to_draw().set<UFloatProperty>(
+    structs.background_to_draw().set<ZFloatProperty>(
         L"ScreenH"_fn, total_height - INTER_LINE_PADDING + OUTER_PADDING);
 
     pending_lines_to_draw.clear();
@@ -166,8 +166,8 @@ PYBIND11_MODULE(osd, m) {
     // We can leave all other background args as zero-init
     // NOLINTNEXTLINE(readability-magic-numbers)
     structs.background_to_draw()
-        .get<UStructProperty>(L"RectColor"_fn)
-        .set<UFloatProperty>(L"A"_fn, BACKGROUND_OPACITY);
+        .get<ZStructProperty>(L"RectColor"_fn)
+        .set<ZFloatProperty>(L"A"_fn, BACKGROUND_OPACITY);
 
     m.def(
         "show",

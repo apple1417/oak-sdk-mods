@@ -1,13 +1,14 @@
 #include "pyunrealsdk/pch.h"
 #include "unrealsdk/hook_manager.h"
-#include "unrealsdk/unreal/classes/properties/uboolproperty.h"
 #include "unrealsdk/unreal/classes/uclass.h"
 #include "unrealsdk/unreal/classes/uobject.h"
 #include "unrealsdk/unreal/classes/uobject_funcs.h"
+#include "unrealsdk/unreal/properties/zboolproperty.h"
 #include "unrealsdk/unreal/wrappers/bound_function.h"
 #include "unrealsdk/unreal/wrappers/weak_pointer.h"
 #include "unrealsdk/unrealsdk.h"
 
+#include <mutex>
 #include "coop.h"
 #include "hooks.h"
 
@@ -119,20 +120,20 @@ void blinky_thread(void) {
                     static auto set_no_loot_beam_func =
                         obj->Class()->find_func_and_validate(L"SetNoLootBeam"_fn);
                     static auto no_loot_beam_prop =
-                        obj->Class()->find_prop_and_validate<UBoolProperty>(L"bNoLootBeam"_fn);
+                        obj->Class()->find_prop_and_validate<ZBoolProperty>(L"bNoLootBeam"_fn);
 
                     // Remove anything which's used all blinks
                     if (entry.remaining_blinks == 0) {
                         // Make sure the beam's definitely on now
                         BoundFunction{.func = set_no_loot_beam_func, .object = obj}
-                            .call<void, UBoolProperty>(false);
+                            .call<void, ZBoolProperty>(false);
                         return true;
                     }
                     entry.remaining_blinks--;
 
                     // Toggle the beam, and keep this entry
                     BoundFunction{.func = set_no_loot_beam_func, .object = obj}
-                        .call<void, UBoolProperty>(!obj->get<UBoolProperty>(no_loot_beam_prop));
+                        .call<void, ZBoolProperty>(!obj->get<ZBoolProperty>(no_loot_beam_prop));
                     return false;
                 });
 
@@ -162,7 +163,7 @@ const constexpr std::wstring_view CLIENT_CONSTRUCT_HOOK_FUNC_NAME =
     L"/Script/GbxInventory.InventoryItemPickup:OnRep_PickupActorClientSpawnData";
 
 bool client_construct_hook(unrealsdk::hook_manager::Details& details) {
-    const std::lock_guard<std::mutex> lock(blinky_mutex);
+    const std::scoped_lock lock(blinky_mutex);
     client_seen_blinks.emplace(
         std::piecewise_construct, std::forward_as_tuple(details.obj),
         std::forward_as_tuple(
@@ -174,7 +175,7 @@ const constexpr std::wstring_view CLIENT_BLINKY_HOOK_FUNC_NAME =
     L"/Script/OakGame.OakInventoryItemPickup:OnRep_NoLootBeam";
 
 bool client_blinky_hook(unrealsdk::hook_manager::Details& details) {
-    const std::lock_guard<std::mutex> lock(blinky_mutex);
+    const std::scoped_lock lock(blinky_mutex);
     auto iter = client_seen_blinks.find(details.obj);
     if (iter == client_seen_blinks.end()) {
         return false;
@@ -198,14 +199,14 @@ void transmit_valid_pickup_to_clients(UObject* pickup) {
     }
 
     {
-        const std::lock_guard<std::mutex> lock(blinky_mutex);
+        const std::scoped_lock lock(blinky_mutex);
         host_upcoming_blinks.emplace_back(pickup, total_blink_count);
     }
     wake_blinky_thread.notify_all();
 }
 
 void reset_state_on_world_change(void) {
-    const std::lock_guard<std::mutex> lock(blinky_mutex);
+    const std::scoped_lock lock(blinky_mutex);
     host_upcoming_blinks.clear();
     client_seen_blinks.clear();
 }
