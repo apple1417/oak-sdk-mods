@@ -7,7 +7,7 @@ reportMissingModuleSource = false
 
 extraPaths = [
     ".oak-mod-manager/src",
-    ".oak-mod-manager/libs/pyunrealsdk/stubs",
+    ".oak-mod-manager/stubs",
 ]
 
 [tool.ruff]
