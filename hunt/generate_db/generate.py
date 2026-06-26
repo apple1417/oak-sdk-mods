@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 import csv
 import sqlite3
-from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 HUNT_DB = Path(__file__).with_name("hunt.sqlite3")
 

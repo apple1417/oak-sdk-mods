@@ -1,12 +1,14 @@
 # ruff: noqa: D103
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from mods_base import ENGINE, get_pc, hook
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 from .db import open_db
 from .native import drops
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 
 @hook("/Script/OakGame.GFxPauseMenu:OnQuitChoiceMade")

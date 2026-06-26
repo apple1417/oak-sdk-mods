@@ -1,20 +1,22 @@
 import shutil
 import sqlite3
-from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from mods_base import SETTINGS_DIR, open_in_mod_dir
 
 from .native import drops
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 DB_PATH = SETTINGS_DIR / "hunt" / "hunt.sqlite3"
 DB_TEMPLATE_PATH = Path(__file__).parent / "hunt.sqlite3.template"
 
 
 @contextmanager
-def open_db(mode: Literal["r", "w"]) -> Iterator[sqlite3.Cursor]:
+def open_db(mode: Literal["r", "w"]) -> Generator[sqlite3.Cursor]:
     """
     Opens a connection to the db.
 

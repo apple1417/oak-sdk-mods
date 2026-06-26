@@ -1,12 +1,14 @@
 # ruff: noqa: D103
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import unrealsdk
 from mods_base import BoolOption, get_pc, hook, keybind
 from ui_utils import show_hud_message
 from unrealsdk.hooks import Type
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
+
+if TYPE_CHECKING:
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 
 @keybind("Kill All")

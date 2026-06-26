@@ -31,7 +31,7 @@ class HuntStat(BoolOption):
     def __post_init__(self) -> None:
         super().__post_init__()
 
-        self.on_change = on_hunt_stat_change
+        self.on_change_anytime = on_hunt_stat_change
 
         self.description += f"\n\nIn the text file use: &#123;{self.format_id}&#125;"
 

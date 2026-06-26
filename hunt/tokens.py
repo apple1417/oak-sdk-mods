@@ -6,10 +6,10 @@ from bl3_mod_menu import DialogBox, DialogBoxChoice
 from mods_base import EInputEvent, KeybindOption, hook, html_to_plain_text
 from ui_utils import show_hud_message
 from unrealsdk import logging
-from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 if TYPE_CHECKING:
     from keybinds import raw_keybinds
+    from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 else:
     try:

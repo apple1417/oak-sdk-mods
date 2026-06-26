@@ -1,7 +1,7 @@
 import os
 import traceback
-from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from bl3_mod_menu import DialogBox, DialogBoxChoice
 from mods_base import (
@@ -20,6 +20,9 @@ from .db_options import FullItemListOption, MapOption, PlanetOption, create_item
 from .native import drops
 from .osd import OUTPUT_TEXT_FILE, TEMPLATE_TEXT_FILE, osd_option, update_osd
 from .tokens import redeem_token_option
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def gen_item_options() -> Iterator[BaseOption]:
@@ -194,7 +197,7 @@ def reset_playthrough_button(_button: ButtonOption) -> None:  # noqa: D103
         "On bad connections, if clients aren't able to redeem items that the host can, increasing"
         " this value on both ends might help."
     ),
-)
+).set_on_change(anytime=True, while_enabled=False)
 def beam_blink_duration_option(_: SliderOption, duration: float) -> None:  # noqa: D103
     if coop_enabled_option.value:
         drops.set_coop_blink_count(int(duration))
@@ -204,7 +207,7 @@ def beam_blink_duration_option(_: SliderOption, duration: float) -> None:  # noq
     "Enabled",
     True,
     description="If to enable coop support. When disabled, removes all loot beam blinking.",
-)
+).set_on_change(anytime=True, while_enabled=False)
 def coop_enabled_option(_: BoolOption, enabled: bool) -> None:  # noqa: D103
     if enabled:
         drops.set_coop_blink_count(int(beam_blink_duration_option.value))

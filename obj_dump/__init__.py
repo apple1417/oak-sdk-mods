@@ -1,12 +1,14 @@
 if True:
     assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
 
-from argparse import Namespace
-from typing import Any, TextIO
+from typing import TYPE_CHECKING, Any, TextIO
 
 import unrealsdk
 from mods_base import build_mod, command
 from unrealsdk.unreal import UObject, WrappedArray
+
+if TYPE_CHECKING:
+    from argparse import Namespace
 
 __version__: str
 __version_info__: tuple[int, ...]

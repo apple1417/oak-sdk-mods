@@ -1,11 +1,14 @@
 import traceback
-from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field
 from functools import cache, cached_property
+from typing import TYPE_CHECKING
 
 from mods_base import BaseOption, ButtonOption, NestedOption
 
 from .db import open_db
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 # Cache this since the same item may exist in multiple maps
