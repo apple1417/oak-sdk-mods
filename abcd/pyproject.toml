@@ -1,6 +1,6 @@
 [project]
 name = "abcd"
-version = "2"
+version = "3"
 authors = [{ name = "apple1417" }]
 description = "Adds keybinds to do various cheaty things."
 
