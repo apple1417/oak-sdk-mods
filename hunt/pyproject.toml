@@ -20,3 +20,4 @@ license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
 download = "https://github.com/apple1417/oak-sdk-mods/releases/download/nightly/hunt.zip"
 supported_games = ["BL3"]
 coop_support = "RequiresAllPlayers"
+uses_native_modules = true
