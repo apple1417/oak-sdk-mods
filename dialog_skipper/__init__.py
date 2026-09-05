@@ -32,7 +32,7 @@ auto_skip = BoolOption(
 
 
 @hook("/Script/GbxDialog.GbxDialogComponent:StartPerformance", Type.PRE)
-def dialog_start_performance(*_: Any) -> None | type[Block]:
+def dialog_start_performance(*_: Any) -> type[Block] | None:
     return Block if auto_skip.value else None
 
 
